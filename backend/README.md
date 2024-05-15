@@ -1,3 +1,3 @@
-# FuelEd
+# Server for FuelEd
 
-A silly chat app
+A silly server for a silly chat app

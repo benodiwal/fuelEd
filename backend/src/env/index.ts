@@ -3,6 +3,9 @@ import { config } from 'dotenv';
 
 const envSchema = z.object({
   PORT: z.string(),
+  JWT_SIGNING_KEY: z.string(),
+  JWT_EXPIRY: z.string(),
+  DATABASE_URL: z.string(),
 });
 
 export const parseEnv = (): void => {

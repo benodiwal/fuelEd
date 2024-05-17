@@ -12,3 +12,148 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Event {
+  id          Int             @id @default(autoincrement())
+  name        String
+  startDateTime DateTime
+  endDateTime DateTime
+  hostId      Int
+  venueId     Int
+  host        Host            @relation(fields: [hostId], references: [id])
+  venue       Venue           @relation(fields: [venueId], references: [id])
+  guests      RSVP[]
+  vendors     Vendor[]
+  chats       Chat[]
+  ledgers     PaymentsLedger[]
+  channels    Channel[]
+
+  @@map("events")
+}
+
+model Guest {
+  id          Int             @id @default(autoincrement())
+  name        String
+  email       String
+  phone       String?
+  rsvps       RSVP[]
+
+  @@map("guests")
+}
+
+model RSVP {
+  id          Int             @id @default(autoincrement())
+  guestId     Int
+  eventId     Int
+  status      String
+  guest       Guest           @relation(fields: [guestId], references: [id])
+  event       Event           @relation(fields: [eventId], references: [id])
+
+  @@map("rsvps")
+}
+
+model Host {
+  id          Int             @id @default(autoincrement())
+  name        String
+  contactInfo String
+  events      Event[]
+  budget      Budget?
+
+  @@map("hosts")
+}
+
+model Venue {
+  id          Int             @id @default(autoincrement())
+  name        String
+  location    String
+  capacity    Int
+  events      Event[]
+
+  @@map("venues")
+}
+
+model Vendor {
+  id          Int             @id @default(autoincrement())
+  name        String
+  serviceType String
+  contactInfo String
+  events      Event[]
+
+  @@map("vendors")
+}
+
+model Chat {
+  id          Int             @id @default(autoincrement())
+  eventId     Int
+  senderId    Int
+  receiverId  Int
+  message     String
+  timestamp   DateTime
+  event       Event           @relation(fields: [eventId], references: [id])
+
+  @@map("chats")
+}
+
+model PaymentsLedger {
+  id          Int             @id @default(autoincrement())
+  paymentAmount Float
+  paymentDate DateTime
+  dueDate     DateTime
+  payerId     Int
+  payeeId     Int
+  eventId     Int
+  status      String
+  event       Event           @relation(fields: [eventId], references: [id])
+
+  @@map("payments_ledgers")
+}
+
+model Budget {
+  id             Int     @id @default(autoincrement())
+  hostId         Int     @unique
+  totalBudget    Float
+  allocatedBudget Float
+  remainingBudget Float
+  host           Host    @relation(fields: [hostId], references: [id])
+
+  @@map("budgets")
+}
+
+model Channel {
+  id          Int             @id @default(autoincrement())
+  name        String
+  channelType ChannelType
+  eventId     Int
+  event       Event          @relation(fields: [eventId], references: [id])
+  messages    Channel_Message[]
+  participants Channel_Participant[]
+
+  @@map("channels")
+}
+
+model Channel_Participant {
+  id          Int             @id @default(autoincrement())
+  channelId   Int
+  participantId Int
+  participantType String 
+  channel     Channel         @relation(fields: [channelId], references: [id])
+
+  @@map("channel_participants")
+}
+
+model Channel_Message {
+  id          Int             @id @default(autoincrement())
+  channelId   Int
+  senderId    Int
+  message     String
+  timestamp   DateTime
+  channel     Channel         @relation(fields: [channelId], references: [id])
+
+  @@map("channel_messages")
+}
+
+enum ChannelType {
+  public
+  private
+  direct
+}

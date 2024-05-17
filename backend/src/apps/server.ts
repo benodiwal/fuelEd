@@ -1,7 +1,6 @@
 import cookieSession from 'cookie-session';
 import Express, { NextFunction, Request, Response, Express as TExpress } from 'express';
 import logger from 'middlewares/logger.middleware';
-import getEnvVar from 'env/index';
 import Context from 'models/Context';
 import AuthRouter from 'routers/auth';
 import { NotFoundError } from 'errors/not-found-error';
@@ -49,8 +48,5 @@ export default class Server {
 
   start() {
     this.#registerHandlers();
-    this.engine.listen(parseInt(getEnvVar('PORT')), () => {
-      console.log(`Server listening at ${getEnvVar('PORT')}`);
-    });
   }
 }

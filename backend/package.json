@@ -34,6 +34,8 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "redis": "^4.6.14",
+    "socket.io": "^4.7.5",
     "zod": "^3.22.4",
     "zod-express-middleware": "^1.4.0"
   },

@@ -46,7 +46,7 @@ model Guest {
   id    String  @id @default(cuid())
   name  String
   email String
-  phone String
+  phone String?
   
   user User @relation(fields: [userId], references: [id])
   userId String @unique
@@ -72,14 +72,12 @@ model Vendor{
   id    String  @id @default(cuid())
   name  String
   email String
-  phone String
-
-  host Event @relation(fields: [hostId], references: [id])
-  hostId String @unique
+  phone String?
 
   user User @relation(fields: [userId], references: [id])
   userId String @unique
 
+  events Event[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

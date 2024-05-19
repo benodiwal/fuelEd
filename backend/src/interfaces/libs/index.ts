@@ -1,14 +1,11 @@
 export interface ISendEmail {
   email: string;
   inviteId: string;
-  token: string;
+  eventId: string;
   data: {
-    subject: string;
+    subject?: string;
     role: Role;
   };
 }
 
-export enum Role {
-  VENDOR,
-  GUEST,
-}
+export type Role = "guest" | "vendor"

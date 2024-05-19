@@ -17,7 +17,11 @@ export default class HostModel implements IHostModel {
         data: {
             name: user.name,
             email: user.email,
-            userId: user.id, 
+            user: {
+                connect: {
+                    id: user.id,
+                }
+            }
         }
     });
     return host;

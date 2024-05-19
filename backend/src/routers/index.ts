@@ -1,4 +1,4 @@
-import { Router, Express, Handler, Response, Request } from 'express';
+import { Router, Express, Handler, Response, Request, RequestHandler } from 'express';
 import { IContext } from 'interfaces/index';
 
 export default abstract class AbstractRouter {
@@ -19,9 +19,9 @@ export default abstract class AbstractRouter {
     this.#engine.use(this.#path, this.#router);
   }
 
-  registerGET(path: string, handler: Handler) {
+  registerGET(path: string, handlers: Handler[]) {
     console.log(`registered: GET ${this.#path}${path}`);
-    this.#router.get(path, handler);
+    this.#router.get(path, handlers);
   }
 
   registerPOST(path: string, handler: Handler) {
@@ -44,9 +44,10 @@ export default abstract class AbstractRouter {
   }
 
   registerHealthRoutes() {
-    this.registerGET('/', this.health);
-    this.registerGET('/health', this.health);
+    this.registerGET('/', [this.health]);
+    this.registerGET('/health', [this.health]);
   }
 
+  abstract registerMiddlewares(): (() => RequestHandler)[];
   abstract registerRoutes(): void;
 }

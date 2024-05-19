@@ -2,25 +2,23 @@ import redisObj, { RedisClientType } from 'redis';
 import getEnvVar from 'env/index';
 
 class Redis {
-  private async createConnection(): Promise<RedisClientType> {
-    const redis: RedisClientType = redisObj.createClient({
-      url: getEnvVar('DATABASE_URL'),
-    });
+  redis: RedisClientType | null = null;
 
-    redis.on('connect', () => {
+  async createConnection() {
+    this.redis = redisObj.createClient({
+      url: getEnvVar('REDIS_HOST'),
+    }) as RedisClientType;
+
+    this.redis.on('connect', () => {
       console.log('Connected to Redis');
     });
 
-    redis.on('disconnect', (err) => {
+    this.redis.on('disconnect', (err) => {
       console.log('err', err);
     });
 
-    await redis.connect();
-
-    return redis;
-  }
-
-  async getConnection(): Promise<RedisClientType> {
-    return await this.createConnection();
+    await this.redis.connect();
   }
 }
+
+export default Redis;

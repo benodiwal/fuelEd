@@ -13,147 +13,145 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Event {
-  id          Int             @id @default(autoincrement())
-  name        String
-  startDateTime DateTime
-  endDateTime DateTime
-  hostId      Int
-  venueId     Int
-  host        Host            @relation(fields: [hostId], references: [id])
-  venue       Venue           @relation(fields: [venueId], references: [id])
-  guests      RSVP[]
-  vendors     Vendor[]
-  chats       Chat[]
-  ledgers     PaymentsLedger[]
-  channels    Channel[]
+model User{
+  id    String  @id @default(cuid())
+  name  String
+  email String  @unique
+  sub   String  @unique
 
-  @@map("events")
+  vendors Vendor[]
+  guests Guest[]
+  hosts Host[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model Guest {
-  id          Int             @id @default(autoincrement())
-  name        String
-  email       String
-  phone       String?
-  rsvps       RSVP[]
-
-  @@map("guests")
-}
-
-model RSVP {
-  id          Int             @id @default(autoincrement())
-  guestId     Int
-  eventId     Int
-  status      String
-  guest       Guest           @relation(fields: [guestId], references: [id])
-  event       Event           @relation(fields: [eventId], references: [id])
-
-  @@map("rsvps")
-}
 
 model Host {
-  id          Int             @id @default(autoincrement())
-  name        String
-  contactInfo String
-  events      Event[]
-  budget      Budget?
+  id    String  @id @default(cuid())
+  name  String
+  email String
+  phone String
 
-  @@map("hosts")
+  user User @relation(fields: [userId], references: [id])
+  userId String @unique
+
+  events Event[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model Venue {
-  id          Int             @id @default(autoincrement())
-  name        String
-  location    String
-  capacity    Int
-  events      Event[]
 
-  @@map("venues")
+model Guest {
+  id    String  @id @default(cuid())
+  name  String
+  email String
+  phone String
+  
+  user User @relation(fields: [userId], references: [id])
+  userId String @unique
+
+  rsvps RSVP?
+
+  events Event[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model Vendor {
-  id          Int             @id @default(autoincrement())
-  name        String
-  serviceType String
-  contactInfo String
-  events      Event[]
-
-  @@map("vendors")
+model Annoucement{
+  id    String  @id @default(cuid())
+  title String
+  body  String
+  date  DateTime
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model Chat {
-  id          Int             @id @default(autoincrement())
-  eventId     Int
-  senderId    Int
-  receiverId  Int
-  message     String
-  timestamp   DateTime
-  event       Event           @relation(fields: [eventId], references: [id])
+model Vendor{
+  id    String  @id @default(cuid())
+  name  String
+  email String
+  phone String
 
-  @@map("chats")
+  host Event @relation(fields: [hostId], references: [id])
+  hostId String @unique
+
+  user User @relation(fields: [userId], references: [id])
+  userId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model PaymentsLedger {
-  id          Int             @id @default(autoincrement())
-  paymentAmount Float
-  paymentDate DateTime
-  dueDate     DateTime
-  payerId     Int
-  payeeId     Int
-  eventId     Int
-  status      String
-  event       Event           @relation(fields: [eventId], references: [id])
 
-  @@map("payments_ledgers")
+// Répondez s'il vous plaît
+model RSVP{
+  id    String  @id @default(cuid())
+  status RSVPStatus @default(PENDING)
+  
+  event Event @relation(fields: [eventId], references: [id])
+  eventId String @unique
+
+  guest Guest @relation(fields: [guestId], references: [id])
+  guestId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model Budget {
-  id             Int     @id @default(autoincrement())
-  hostId         Int     @unique
-  totalBudget    Float
-  allocatedBudget Float
-  remainingBudget Float
-  host           Host    @relation(fields: [hostId], references: [id])
+model Event {
+  id    String  @id @default(cuid())
+  name  String
+  startDate  DateTime
+  endDate    DateTime
 
-  @@map("budgets")
+  rsvps RSVP[]
+  invites Invite[]
+  guests Guest[]
+  vendors Vendor[]
+
+
+  host  Host    @relation(fields: [hostId], references: [id])
+  hostId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model Channel {
-  id          Int             @id @default(autoincrement())
-  name        String
-  channelType ChannelType
-  eventId     Int
-  event       Event          @relation(fields: [eventId], references: [id])
-  messages    Channel_Message[]
-  participants Channel_Participant[]
 
-  @@map("channels")
+model Invite {
+  id    String  @id @default(cuid())
+  status InviteStatus @default(PENDING)
+  email String
+  event Event @relation(fields: [eventId], references: [id])
+  eventId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model Channel_Participant {
-  id          Int             @id @default(autoincrement())
-  channelId   Int
-  participantId Int
-  participantType String 
-  channel     Channel         @relation(fields: [channelId], references: [id])
-
-  @@map("channel_participants")
+enum VendorType {
+  CATERER
+  PHOTOGRAPHER
+  DJ
+  DECORATOR
+  PLANNER
+  FLORIST
+  BAKER
+  OTHER
+  VENUE
 }
 
-model Channel_Message {
-  id          Int             @id @default(autoincrement())
-  channelId   Int
-  senderId    Int
-  message     String
-  timestamp   DateTime
-  channel     Channel         @relation(fields: [channelId], references: [id])
 
-  @@map("channel_messages")
+enum InviteStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
 }
-
-enum ChannelType {
-  public
-  private
-  direct
+enum RSVPStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
 }

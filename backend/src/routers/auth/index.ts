@@ -1,11 +1,14 @@
-import { Express } from 'express';
 import AbstractRouter from '..';
-import { IContext } from 'interfaces';
+import AuthController from 'controllers/auth.controller';
 
 export default class AuthRouter extends AbstractRouter {
-  constructor(ctx: IContext, engine: Express, path: string) {
-    super(ctx, engine, path);
+  registerMiddlewares() {
+    return [];
   }
 
-  registerRoutes(): void {}
+  registerRoutes(): void {
+    const authController = new AuthController(this.ctx);
+    this.registerGET('/google', authController.getAuthGoogle());
+    this.registerGET('/google/callback', authController.getAuthGoogleCallback());
+  }
 }

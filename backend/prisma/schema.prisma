@@ -32,7 +32,6 @@ model Host {
   id    String  @id @default(cuid())
   name  String
   email String
-  phone String
 
   user User @relation(fields: [userId], references: [id])
   userId String @unique
@@ -111,7 +110,6 @@ model Event {
   invites Invite[]
   guests Guest[]
   vendors Vendor[]
-
 
   host  Host    @relation(fields: [hostId], references: [id])
   hostId String @unique

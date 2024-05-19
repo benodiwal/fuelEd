@@ -2,7 +2,7 @@ import getEnvVar from 'env/index';
 import { ISendEmail } from 'interfaces/libs';
 import nodemailer, { Transporter } from 'nodemailer';
 
-export default class Email {
+class Email {
   #transporter: Transporter;
 
   constructor() {
@@ -23,9 +23,9 @@ export default class Email {
       from: 'sachinbeniwal0101@gmail.com',
       to: email,
       subject: data.subject,
-      text: `ou have been invited for of ${data.role}`,
+      text: `You have been invited to be a ${data.role}`,
       html: `
-                 <p>Hello world?</p>
+                 <p>Hi there!!</p>
                  <p>Click the button below:</p>
       <div style="text-align: center;">
         <a href="http://localhost:3000/workspace/invite/${inviteId}?token=${token}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; border-radius: 5px;">Click me</a>
@@ -37,3 +37,6 @@ export default class Email {
   }
 
 }
+
+const emailService = new Email();
+export default emailService;

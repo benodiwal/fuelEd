@@ -24,9 +24,9 @@ export default abstract class AbstractRouter {
     this.#router.get(path, handlers);
   }
 
-  registerPOST(path: string, handler: Handler) {
+  registerPOST(path: string, handlers: Handler[]) {
     console.log(`registered: POST ${this.#path}${path}`);
-    this.#router.post(path, handler);
+    this.#router.post(path, handlers);
   }
 
   registerPUT(path: string, handler: Handler) {

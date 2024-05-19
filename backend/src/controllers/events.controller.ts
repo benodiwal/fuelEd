@@ -1,144 +1,62 @@
-import { Request, Response } from 'express';
-import AbstractController from './index.controller';
+import { validateRequestBody } from "validators/validateRequest";
+import AbstractController from "./index.controller";
+import { NextFunction, Request, Response } from "express";
+import { createEventSchema } from "zod/schema";
+import { InternalServerError } from "errors/internal-server-error";
 
-export default class EventsController extends AbstractController {
-  async createEvent(req: Request, res: Response) {
-    const { name, startDateTime, endDateTime, hostId, venueId } = req.body;
-    try {
-      const event = await this.ctx.events.create({
-        data: {
-          name,
-          startDateTime: new Date(startDateTime),
-          endDateTime: new Date(endDateTime),
-          hostId: parseInt(hostId, 10),
-          venueId: parseInt(venueId, 10),
-        },
-      });
+class EventsController extends AbstractController {
 
-      // Create default channel
-      await this.ctx.channels.create({
-        data: {
-          name: `General-${event.id}`,
-          channelType: 'public',
-          eventId: event.id,
-          participants: {
-            connect: [{ id: hostId }],
-          },
-        },
-      });
-
-      res.status(201).json(event);
-    } catch (error) {
-      res.status(500).send(error);
-    }
-  }
-
-  async getEvents(_: Request, res: Response) {
-    try {
-      const events = await this.ctx.events.findMany({});
-      res.json(events);
-    } catch (error) {
-      res.status(500).send(error);
-    }
-  }
-
-  async getEventById(req: Request, res: Response) {
-    const { id } = req.params;
-    try {
-      const event = await this.ctx.events.findUnqiue({
-        where: {
-          id: parseInt(id, 10),
-        },
-      });
-      if (event) {
-        res.status(200).json(event);
-      } else {
-        res.status(404).send('Event not found');
+  createEvent() {
+    return [
+      validateRequestBody(createEventSchema),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const userId = req.session.currentUserId as string;
+          const { name, startDate, endDate } = req.body as unknown as { name: string, startDate: string, endDate: string };
+          const host = await this.ctx.hosts.createHostByUserId(userId);
+          
+          if (!host) {
+            return res.sendStatus(404);
+          }
+          
+          await this.ctx.events.create({
+            data: {
+              name,
+              startDate,
+              endDate,
+              hostId: host.id,
+            }
+          });
+          
+          res.status(201);
+        } catch (e: unknown) {
+          console.error(e);
+          next(new InternalServerError());  
+        }
       }
-    } catch (error) {
-      res.status(500).send(error);
-    }
+    ];
   }
 
-  async updateEventById(req: Request, res: Response) {
-    const { id } = req.params;
-    const { name, startDateTime, endDateTime, hostId, venueId } = req.body;
-    try {
-      const event = await this.ctx.events.update({
-        where: {
-          id: parseInt(id, 10),
-        },
-        data: {
-          name,
-          startDateTime: startDateTime,
-          endDateTime: endDateTime,
-          hostId: parseInt(hostId, 10),
-          venueId: parseInt(venueId, 10),
-        },
-      });
-      if (event) {
-        res.status(201).json(event);
-      } else {
-        res.status(404).send('Event not found');
+  getEventById() {
+    return [
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { id } = req.params as unknown as { id: string };
+          const event = await this.ctx.events.findUnqiue({
+            where: {
+              id,
+            },
+          });
+
+          return res.status(200).send(event);
+        } catch (e: unknown) {
+          console.error(e);
+          next(new InternalServerError());
+        }
       }
-    } catch (error) {
-      res.status(500).send(error);
-    }
+    ];
   }
 
-  async deleteEventById(req: Request, res: Response) {
-    const { id } = req.params;
-    try {
-      await this.ctx.events.delete({
-        where: {
-          id: parseInt(id, 10),
-        },
-      });
-      res.status(204).send('Event deleted successfully');
-    } catch (error) {
-      res.status(500).send(error);
-    }
-  }
-
-  async addVendorToEvent(req: Request, res: Response) {
-    const { eventId } = req.params;
-    const { vendorId } = req.body;
-
-    try {
-      const event = await this.ctx.events.update({
-        where: {
-          id: parseInt(eventId, 10),
-        },
-        data: {
-          vendors: {
-            connect: [{ id: vendorId }],
-          },
-        },
-      });
-      res.json(event);
-    } catch (error) {
-      res.status(500).send(error);
-    }
-  }
-
-  async addGuestToEvent(req: Request, res: Response) {
-    const { eventId } = req.params;
-    const { guestId } = req.body;
-
-    try {
-      const event = await this.ctx.events.update({
-        where: {
-          id: parseInt(eventId, 10),
-        },
-        data: {
-          vendors: {
-            connect: [{ id: guestId }],
-          },
-        },
-      });
-      res.json(event);
-    } catch (error) {
-      res.status(500).send(error);
-    }
-  }
 }
+
+export default EventsController;

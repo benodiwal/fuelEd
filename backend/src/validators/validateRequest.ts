@@ -16,3 +16,17 @@ export const validateReuestQuery = (schema: AnyZodObject) => {
         }
     }
 }
+
+export const validateRequestBody = (schema: AnyZodObject) => {
+    return async (req: Request, _: Response, next: NextFunction) => {
+        try {
+            req.body = schema.parse(req.body);
+            next();
+        } catch (e) {
+            if (e instanceof ZodError) {
+                return next(new RequestValidationError(e));
+            }
+            next(new InternalServerError());
+        }
+    }
+}

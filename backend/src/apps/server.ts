@@ -6,6 +6,8 @@ import AuthRouter from 'routers/auth';
 import { NotFoundError } from 'errors/not-found-error';
 import { errorHandler } from 'middlewares/error.middleware';
 import { IDatabase } from 'interfaces';
+import UserRouter from 'routers/user';
+import EventsRouter from 'routers/events';
 
 export default class Server {
   db: IDatabase;
@@ -37,7 +39,11 @@ export default class Server {
 
     const ctx = new Context(this.db);
     const authRouter = new AuthRouter(ctx, this.engine, '/auth');
+    const userRouter = new UserRouter(ctx, this.engine, '/user');
+    const eventsRouter = new EventsRouter(ctx, this.engine, '/events');
     authRouter.register();
+    userRouter.register();
+    eventsRouter.register();
 
     this.engine.all('*', async (__: Request, _: Response, next: NextFunction) => {
       next(new NotFoundError());

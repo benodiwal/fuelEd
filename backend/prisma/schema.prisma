@@ -73,7 +73,7 @@ model Vendor{
   name  String
   email String
   phone String?
-
+  vendorType VendorType?
   user User @relation(fields: [userId], references: [id])
   userId String @unique
 
@@ -139,7 +139,6 @@ enum VendorType {
   OTHER
   VENUE
 }
-
 
 enum InviteStatus {
   PENDING

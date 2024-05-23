@@ -36,6 +36,7 @@ model Host {
   user User @relation(fields: [userId], references: [id])
   userId String @unique
 
+  channelParticipants ChannelParticipant[]
   events Event[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -53,19 +54,41 @@ model Guest {
 
   rsvps RSVP?
 
+  channelParticipants ChannelParticipant[]
   events Event[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Annoucement{
-  id    String  @id @default(cuid())
-  title String
-  body  String
-  date  DateTime
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model EventPost {
+  id String @id @default(cuid())
+  heading String
+  description String
+  sendEmail Boolean
+  eventId String
+
+  event Event @relation(fields: [eventId], references: [id])
+}
+
+model EventPoll {
+  id String @id @default(cuid())
+  heading String
+  description String
+  sendEmail Boolean
+  allowMultiple Boolean
+  eventId String
+  options EventPollOptions[]
+
+  event Event @relation(fields: [eventId], references: [id])
+}
+
+model EventPollOptions {
+  id String @id @default(cuid())
+  text String
+  count Int @default(0)
+  eventPollId String
+
+  eventPoll EventPoll @relation(fields: [eventPollId], references: [id])
 }
 
 model Vendor{
@@ -76,12 +99,22 @@ model Vendor{
   vendorType VendorType?
   user User @relation(fields: [userId], references: [id])
   userId String @unique
+  contract Contract?
 
+  channelParticipants ChannelParticipant[]
   events Event[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+model Contract {
+  id    String  @id @default(cuid())
+  vendorId String @unique
+  contractData String
+  signedByHost Boolean @default(true)
+  signedByVendor Boolean @default(false)
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+}
 
 // Répondez s'il vous plaît
 model RSVP{
@@ -108,6 +141,10 @@ model Event {
   invites Invite[]
   guests Guest[]
   vendors Vendor[]
+  eventPosts EventPost[]
+  eventPolls EventPoll[]
+
+  channels Channel[]
 
   host  Host    @relation(fields: [hostId], references: [id])
   hostId String @unique
@@ -115,7 +152,6 @@ model Event {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 
 model Invite {
   id    String  @id @default(cuid())
@@ -126,6 +162,49 @@ model Invite {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Channel {
+  id String @id @default(cuid())
+  name String
+  channelType ChannelType @default(PUBLIC)
+  channelParticipants ChannelParticipant[]
+  channelMessages ChannelMessage[]
+
+  eventId String
+  event Event @relation(fields: [eventId], references: [id])
+}
+
+model ChannelParticipant {
+  id String @id @default(cuid())
+  roleId String @unique
+  role Role
+  host Host? @relation(fields: [roleId], references: [id], map: "ChannelParticipant_hostId_fkey")
+  guest Guest? @relation(fields: [roleId], references: [id], map: "ChannelParticipant_guestId_fkey")
+  vendor Vendor? @relation(fields: [roleId], references: [id], map: "ChannelParticipant_vendorId_fkey")
+
+  channelId String
+  channel Channel @relation(fields: [channelId], references: [id])
+
+  channelMessage ChannelMessage[]
+}
+
+model ChannelMessage {
+  id String @id @default(cuid())  
+  message String
+  timestamp DateTime @default(now())
+
+  channelId String
+  senderId String
+
+  channel Channel @relation(fields: [channelId], references: [id])
+  sender ChannelParticipant @relation(fields: [senderId], references: [id])
+}
+
+enum ChannelType {
+  PUBLIC
+  PRIVATE
+  DIRECT
 }
 
 enum VendorType {
@@ -145,8 +224,15 @@ enum InviteStatus {
   CONFIRMED
   CANCELLED
 }
+
 enum RSVPStatus {
   PENDING
   CONFIRMED
   CANCELLED
+}
+
+enum Role {
+  HOST
+  GUEST
+  VENDOR
 }

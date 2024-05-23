@@ -1,7 +1,7 @@
 import { validateRequestBody, validateRequestParams } from "validators/validateRequest";
 import AbstractController from "./index.controller";
 import { NextFunction, Request, Response } from "express";
-import { createEventSchema } from "zod/schema";
+import { createEventSchema, createPollSchema, createPostSchema } from "zod/schema";
 import { InternalServerError } from "errors/internal-server-error";
 import emailService from "libs/email.lib";
 import { z } from "zod";
@@ -127,7 +127,7 @@ class EventsController extends AbstractController {
             });
           } else {
             let vendor = await this.ctx.vendors.createVendorByUserId(userId);
-            vendor = await this.ctx.guests.update({
+            vendor = await this.ctx.vendors.update({
               where: {
                 id: vendor?.id,
               },
@@ -154,6 +154,122 @@ class EventsController extends AbstractController {
         } catch (e: unknown) {
           console.error(e);
           next(new InternalServerError());
+        }
+      }
+    ];
+  }
+
+  createPost() {
+    return [
+      validateRequestParams(z.object({ id: z.string() })),
+      validateRequestBody(createPostSchema),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { id } = req.params as unknown as { id: string };
+          const { heading, description, sendEmail } = req.body as unknown as { heading: string, description: string, sendEmail: boolean };
+
+          await this.ctx.eventPosts.create({
+            data: {
+              heading,
+              description,
+              sendEmail,
+              event: {
+                connect: { id },
+              }
+            }
+          });
+
+          res.sendStatus(200);
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      }
+    ];
+  }
+  
+  getPostById() {
+    return [
+      validateRequestParams(z.object({ id: z.string(), postId: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { postId } = req.params as unknown as { postId: string };
+          const eventPost = await this.ctx.eventPosts.findUnqiue({
+            where: {
+              id: postId,
+            }
+          });
+          console.log(eventPost);
+          res.sendStatus(200);
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError()); 
+        }
+      }
+    ];
+  }
+  
+  createPoll() {
+    return [
+      validateRequestParams(z.object({ id: z.string() })),
+      validateRequestBody(createPollSchema),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { id } = req.params as unknown as { id: string };
+          const { heading, description, sendEmail, allowMultiple, options } = req.body as unknown as {
+            heading: string,
+            description: string,
+            sendEmail: boolean,
+            allowMultiple: boolean,
+            options: string[],
+          };
+
+          await this.ctx.eventPolls.create({
+            data: {
+              heading,
+              description,
+              sendEmail,
+              allowMultiple,
+              event: {
+                connect: { id },
+              }
+            }
+          });
+
+          let i = 0;
+          for (const option of options) {
+            await this.ctx.eventPollOptions.createByPollId(id, option);
+            i++;
+          }
+
+          res.sendStatus(200);
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError()); 
+        }
+      }
+    ];
+  }
+  
+  getPollById() {
+    return [
+      validateRequestParams(z.object({ id: z.string(), pollId: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { pollId } = req.params as unknown as { pollId: string };
+          const eventPoll = await this.ctx.eventPolls.findUnqiue({
+            where: {
+              id: pollId,
+            },
+            include: {
+              options: true,
+            }
+          });
+          console.log(eventPoll);
+          res.sendStatus(200);
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError()); 
         }
       }
     ];

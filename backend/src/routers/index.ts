@@ -19,6 +19,10 @@ export default abstract class AbstractRouter {
     this.#engine.use(this.#path, this.#router);
   }
 
+  extendRouter(path: string, router: Router) {
+    this.#router.use(path, router);
+  }
+
   registerGET(path: string, handlers: Handler[]) {
     console.log(`registered: GET ${this.#path}${path}`);
     this.#router.get(path, handlers);

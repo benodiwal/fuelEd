@@ -9,6 +9,7 @@ export default class ChannelRouter extends AbstractRouter {
   registerRoutes(): void {
     const channelController = new ChannelController(this.ctx);
     this.registerPOST('/', channelController.createChannel());
+    this.registerPOST('/dms', channelController.createDM());
     this.registerGET('/:channelId', channelController.getChannelById());
     this.registerPOST('/:channelId/:role/:roleId', channelController.addParticipant());
   }

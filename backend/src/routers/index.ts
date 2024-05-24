@@ -33,14 +33,14 @@ export default abstract class AbstractRouter {
     this.#router.post(path, handlers);
   }
 
-  registerPUT(path: string, handler: Handler) {
+  registerPUT(path: string, handlers: Handler[]) {
     console.log(`registered: PUT ${this.#path}${path}`);
-    this.#router.put(path, handler);
+    this.#router.put(path, handlers);
   }
 
-  registerDELETE(path: string, handler: Handler) {
+  registerDELETE(path: string, handlers: Handler[]) {
     console.log(`registered: DELETE ${this.#path}${path}`);
-    this.#router.delete(path, handler);
+    this.#router.delete(path, handlers);
   }
 
   health(_: Request, res: Response) {

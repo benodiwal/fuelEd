@@ -1,6 +1,6 @@
 import { validateRequestBody, validateRequestParams } from "validators/validateRequest";
 import AbstractController from "./index.controller";
-import { date, z } from "zod";
+import { z } from "zod";
 import { NextFunction, Request, Response } from "express";
 import { InternalServerError } from "errors/internal-server-error";
 import { ChannelParticipant, ChannelType, Role } from "@prisma/client";
@@ -301,6 +301,38 @@ class ChannelController extends AbstractController {
                         return res.status(404).json({ error: 'Message not found'});
                     }
                     res.status(200).json({data: channelMessages});
+                } catch (e) {
+                    console.error(e);
+                    next(new InternalServerError());
+                }
+            }
+        ];
+    }
+
+    editMessage() {
+        return [
+            validateRequestParams(z.object({ channelId:z.string(),  messageId: z.string() })),
+            validateRequestBody(z.object({ message: z.string(), timestamp: z.date() })),
+            async (req: Request, res: Response, next: NextFunction) => {
+                try {
+                    const { messageId } = req.params as unknown as { messageId: string };
+                    const { message, timestamp } = req.body as unknown as { message: string, timestamp: Date };
+
+                    const channelMessage = await this.ctx.channelMessages.update({
+                        where: {
+                            id: messageId
+                        },
+                        data: {
+                            message,
+                            timestamp
+                        }
+                    });
+
+                    if (!channelMessage) {
+                        return res.status(404).json({ error: 'Message not found' });
+                    }
+
+                    res.status(201).json({ data: channelMessage });
                 } catch (e) {
                     console.error(e);
                     next(new InternalServerError());

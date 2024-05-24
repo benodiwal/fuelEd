@@ -16,5 +16,6 @@ export default class ChannelRouter extends AbstractRouter {
     this.registerPOST('/:channelId/messages', channelController.createMessage());
     this.registerGET('/:channelId/messages', channelController.getAllMessages());
     this.registerGET('/:channelId/messages/:messageId', channelController.getMessageById());
+    this.registerPUT('/:channelId/messages/:messageId', channelController.editMessage());
   }
 }

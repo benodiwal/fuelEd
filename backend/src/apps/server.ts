@@ -8,6 +8,7 @@ import { errorHandler } from 'middlewares/error.middleware';
 import { IDatabase } from 'interfaces';
 import UserRouter from 'routers/user';
 import EventsRouter from 'routers/events';
+import cors from 'cors';
 
 export default class Server {
   db: IDatabase;
@@ -19,6 +20,7 @@ export default class Server {
   }
 
   #registerHandlers() {
+    this.engine.use(cors());
     this.engine.use(logger);
     this.engine.use(Express.json());
 

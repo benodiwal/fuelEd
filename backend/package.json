@@ -30,6 +30,10 @@
   "homepage": "https://github.com/benodiwal/fuelEd#readme",
   "dependencies": {
     "@prisma/client": "^5.12.1",
+    "@types/axios": "^0.14.0",
+    "@types/cors": "^2.8.17",
+    "axios": "^1.7.2",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "google-auth-library": "^9.10.0",

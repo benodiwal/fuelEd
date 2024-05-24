@@ -19,7 +19,15 @@ class GoogleOAuthClient {
   async getTokenAndVerifyFromCode(code: string) {
     try {
       const { tokens } = await this.#client.getToken(code);
-      const verifyResponse = await this.#client.verifyIdToken({ idToken: tokens.id_token as string, audience: getEnvVar('GOOGLE_OAUTH_CLIENT_ID') });
+      console.log('Tokens: ', tokens);
+
+      const verifyResponse = await this.#client.verifyIdToken({
+        idToken: tokens.id_token as string,
+        audience: getEnvVar('GOOGLE_OAUTH_CLIENT_ID'),
+      });
+
+      console.log(verifyResponse.getPayload());
+
       return verifyResponse.getPayload() as TokenPayload;
     } catch (e: unknown) {
       const error = e as gaxios.GaxiosError;

@@ -5,7 +5,7 @@ export interface IHostModel {
   db: IDatabase;
   create(args: Prisma.HostCreateArgs): Promise<Host>;
 
-  createHostByUserId(userId: string): Promise<Host|undefined>;
+  createHostByUserId(userId: string): Promise<Host | undefined>;
 
   findFirst(args: Prisma.HostFindFirstArgs): Promise<Host | null>;
 

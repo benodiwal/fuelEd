@@ -7,22 +7,22 @@ export default class HostModel implements IHostModel {
   constructor(db: IDatabase) {
     this.db = db;
   }
-  
-  async createHostByUserId(userId: string): Promise<Host|undefined> {
+
+  async createHostByUserId(userId: string): Promise<Host | undefined> {
     const user = await this.db.client.user.findUnique({
-        where: { id: userId }
+      where: { id: userId },
     });
     if (!user) return undefined;
     const host = await this.db.client.host.create({
-        data: {
-            name: user.name,
-            email: user.email,
-            user: {
-                connect: {
-                    id: user.id,
-                }
-            }
-        }
+      data: {
+        name: user.name,
+        email: user.email,
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+      },
     });
     return host;
   }

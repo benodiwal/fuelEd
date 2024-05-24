@@ -1,11 +1,11 @@
-import redisObj, { RedisClientType } from 'redis';
+import { RedisClientType, createClient } from 'redis';
 import getEnvVar from 'env/index';
 
 class Redis {
   redis: RedisClientType | null = null;
 
   async createConnection() {
-    this.redis = redisObj.createClient({
+    this.redis = createClient({
       url: getEnvVar('REDIS_HOST'),
     }) as RedisClientType;
 

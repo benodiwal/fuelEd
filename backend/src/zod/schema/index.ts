@@ -1,4 +1,4 @@
-import { optional, z } from "zod";
+import { z } from 'zod';
 
 export const createEventSchema = z.object({
   name: z.string().min(1),

@@ -22,8 +22,8 @@ class Email {
     const info = await this.#transporter.sendMail({
       from: 'sachinbeniwal0101@gmail.com',
       to: email,
-      subject: "Invitation", // Todo: Change it later
-      text: `You have been invited to be a ${data.role}`, 
+      subject: 'Invitation', // Todo: Change it later
+      text: `You have been invited to be a ${data.role}`,
       html: `
                  <p>Hi there!!</p>
                  <p>Click the button below:</p>
@@ -35,7 +35,6 @@ class Email {
 
     console.log('Invite sent: %s', info);
   }
-
 }
 
 const emailService = new Email();

@@ -4,8 +4,8 @@ import { IDatabase } from 'interfaces';
 export interface IGuestModel {
   db: IDatabase;
   create(args: Prisma.GuestCreateArgs): Promise<Guest>;
-  
-  createGuestByUserId(userId: string): Promise<Guest|undefined>;
+
+  createGuestByUserId(userId: string): Promise<Guest | undefined>;
 
   findFirst(args: Prisma.GuestFindFirstArgs): Promise<Guest | null>;
 

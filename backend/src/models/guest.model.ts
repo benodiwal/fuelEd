@@ -12,21 +12,21 @@ export default class GuestModel implements IGuestModel {
     return this.db.client.guest.create(args);
   }
 
-  async createGuestByUserId(userId: string): Promise<Guest|undefined> {
+  async createGuestByUserId(userId: string): Promise<Guest | undefined> {
     const user = await this.db.client.user.findUnique({
-        where: { id: userId }
+      where: { id: userId },
     });
     if (!user) return undefined;
     const guest = await this.db.client.guest.create({
-        data: {
-            name: user.name,
-            email: user.email,
-            user: {
-                connect: {
-                    id: user.id,
-                }
-            }
-        }
+      data: {
+        name: user.name,
+        email: user.email,
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+      },
     });
     return guest;
   }

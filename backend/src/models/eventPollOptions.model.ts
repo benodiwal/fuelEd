@@ -14,12 +14,12 @@ export default class EventPollOptionsModel implements IEventPollOptionsModel {
 
   async createByPollId(pollId: string, text: string): Promise<EventPollOptions> {
     return this.db.client.eventPollOptions.create({
-        data: {
-            text,
-            eventPoll: {
-                connect: { id: pollId },
-            }
-        }
+      data: {
+        text,
+        eventPoll: {
+          connect: { id: pollId },
+        },
+      },
     });
   }
 

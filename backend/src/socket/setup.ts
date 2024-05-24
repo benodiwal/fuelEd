@@ -16,7 +16,7 @@ class Socket {
       cors: {
         origin: '*',
         methods: ['GET', 'POST'],
-      }
+      },
     });
     this.#socketRoutes = new SocketRoutes(this.#database);
   }
@@ -26,9 +26,8 @@ class Socket {
       this.#io.on('connection', (socket) => {
         this.#socketRoutes.getRoutes().map((route) => socket.on(route.name, (data) => route.controller(socket, data)));
       });
-    }
+    };
   }
-
 }
 
 export default Socket;

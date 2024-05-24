@@ -1,346 +1,339 @@
-import { validateRequestBody, validateRequestParams } from "validators/validateRequest";
-import AbstractController from "./index.controller";
-import { z } from "zod";
-import { NextFunction, Request, Response } from "express";
-import { InternalServerError } from "errors/internal-server-error";
-import { ChannelParticipant, ChannelType, Role } from "@prisma/client";
+import { validateRequestBody, validateRequestParams } from 'validators/validateRequest';
+import AbstractController from './index.controller';
+import { z } from 'zod';
+import { NextFunction, Request, Response } from 'express';
+import { InternalServerError } from 'errors/internal-server-error';
+import { ChannelParticipant, ChannelType, Role } from '@prisma/client';
 
 class ChannelController extends AbstractController {
+  createChannel() {
+    return [
+      validateRequestBody(z.object({ name: z.string(), channelType: z.nativeEnum(ChannelType).refine((type) => type != ChannelType.DIRECT) })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { name, channelType } = req.body as unknown as { name: string; channelType: ChannelType };
+          // TODO: i have to write a middleware to forward the eventId as req.eventId
+          const eventId = '';
+          const event = await this.ctx.events.findFirst({
+            where: {
+              id: eventId,
+            },
+          });
 
-    createChannel() {
-        return [
-            validateRequestBody(z.object({ name: z.string(), channelType: z.nativeEnum(ChannelType).refine(type => type != ChannelType.DIRECT) })),
-            async (req: Request, res: Response, next: NextFunction) => {
-                try {
+          if (!event) {
+            return res.status(404).json({ error: 'Event not found' });
+          }
 
-                    const { name, channelType } = req.body as unknown as { name: string, channelType: ChannelType };
-                    // TODO: i have to write a middleware to forward the eventId as req.eventId
-                    const eventId = "";
-                    const event = await this.ctx.events.findFirst({
-                        where: {
-                            id: eventId,
-                        }
-                    });
+          const hostId = event.hostId;
 
-                    if (!event) {
-                        return res.status(404).json({error: "Event not found"});
-                    }
+          const channel = await this.ctx.channels.create({
+            data: {
+              name,
+              channelType,
+              event: {
+                connect: {
+                  id: eventId,
+                },
+              },
+            },
+          });
 
-                    const hostId = event.hostId;
+          const channelParticipantHost = await this.ctx.channelParticipants.create({
+            data: {
+              role: Role.HOST,
+              channel: {
+                connect: {
+                  id: channel.id,
+                },
+              },
+              host: {
+                connect: {
+                  id: hostId,
+                },
+              },
+            },
+          });
 
-                    const channel = await this.ctx.channels.create({
-                        data: {
-                            name,
-                            channelType,
-                            event: {
-                                connect: {
-                                    id: eventId,
-                                }
-                            }
-                        }
-                    });
+          console.log(channelParticipantHost);
+          res.sendStatus(200);
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
 
-                    const channelParticipantHost = await this.ctx.channelParticipants.create({
-                        data: {
-                            role: Role.HOST,
-                            channel: {
-                                connect: {
-                                    id: channel.id,
-                                }
-                            },
-                            host: {
-                                connect: {
-                                    id: hostId,
-                                }
-                            }
-                        }
-                    });
+  createDM() {
+    return [
+      validateRequestBody(z.object({ name: z.string(), roleId: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { name, roleId } = req.body as unknown as { name: string; roleId: string };
+          const eventId = '';
+          const event = await this.ctx.events.findFirst({
+            where: {
+              id: eventId,
+            },
+          });
 
-                    console.log(channelParticipantHost);
-                    res.sendStatus(200);
-                } catch (e) {
-                    console.error(e);
-                    next(new InternalServerError());
-                }
-            }
-        ];
-    }
+          if (!event) {
+            return res.status(404).json({ error: 'Event not found' });
+          }
 
-    createDM() {
-        return [
-            validateRequestBody(z.object({ name: z.string(), roleId: z.string() })),
-            async (req: Request, res: Response, next: NextFunction) => {
-                try {
-                    const { name, roleId } = req.body as unknown as { name: string, roleId: string };
-                    const eventId = "";
-                    const event = await this.ctx.events.findFirst({
-                        where: {
-                            id: eventId,
-                        }
-                    });
+          const hostId = event.hostId;
 
-                    if (!event) {
-                        return res.status(404).json({error: "Event not found"});
-                    }
+          const channel = await this.ctx.channels.create({
+            data: {
+              name,
+              channelType: ChannelType.DIRECT,
+              event: {
+                connect: {
+                  id: eventId,
+                },
+              },
+            },
+          });
 
-                    const hostId = event.hostId;
+          const channelParticipantHost = await this.ctx.channelParticipants.create({
+            data: {
+              role: Role.HOST,
+              channel: {
+                connect: {
+                  id: channel.id,
+                },
+              },
+              host: {
+                connect: {
+                  id: hostId,
+                },
+              },
+            },
+          });
+          console.log(channelParticipantHost);
 
-                    const channel = await this.ctx.channels.create({
-                        data: {
-                            name,
-                            channelType: ChannelType.DIRECT,
-                            event: {
-                                connect: {
-                                    id: eventId,
-                                }
-                            }
-                        }
-                    });
+          const channelParticipantVendor = await this.ctx.channelParticipants.create({
+            data: {
+              role: Role.VENDOR,
+              channel: {
+                connect: {
+                  id: channel.id,
+                },
+              },
+              vendor: {
+                connect: {
+                  id: roleId,
+                },
+              },
+            },
+          });
+          console.log(channelParticipantVendor);
 
-                    const channelParticipantHost = await this.ctx.channelParticipants.create({
-                        data: {
-                            role: Role.HOST,
-                            channel: {
-                                connect: {
-                                    id: channel.id,
-                                }
-                            },
-                            host: {
-                                connect: {
-                                    id: hostId,
-                                }
-                            }
-                        }
-                    });
-                    console.log(channelParticipantHost);
+          res.status(200);
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
 
-                    const channelParticipantVendor = await this.ctx.channelParticipants.create({
-                        data: {
-                            role: Role.VENDOR,
-                            channel: {
-                                connect: {
-                                    id: channel.id,
-                                },
-                            },
-                            vendor: {
-                                connect: {
-                                    id: roleId,
-                                }
-                            }
-                        }
-                    });
-                    console.log(channelParticipantVendor);
+  getChannelById() {
+    return [
+      validateRequestParams(z.object({ channelId: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { channelId } = req.params as unknown as { channelId: string };
+          const channel = await this.ctx.channels.findUnqiue({
+            where: {
+              id: channelId,
+            },
+            include: {
+              channelMessages: true,
+              channelParticipants: true,
+            },
+          });
+          if (!channel) {
+            res.status(404).json({ error: 'Channel not found' });
+          }
+          res.status(200).json({ data: channel });
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
 
-                    res.status(200);
+  addParticipant() {
+    return [
+      validateRequestParams(z.object({ channelId: z.string(), role: z.nativeEnum(Role), roleId: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { channelId, role, roleId } = req.params as unknown as { channelId: string; role: Role; roleId: string };
 
-                } catch (e) {
-                    console.error(e);
-                    next(new InternalServerError());
-                }
-            }
-        ];
-    }
+          let channelParticipant: ChannelParticipant | undefined = undefined;
 
-    getChannelById() {
-        return [
-            validateRequestParams(z.object({ channelId: z.string() })),
-            async (req: Request, res: Response, next: NextFunction) => {
-                try {
-                    const { channelId } = req.params as unknown as { channelId: string };
-                    const channel = await this.ctx.channels.findUnqiue({
-                        where: {
-                            id: channelId,
-                        },
-                        include: {
-                            channelMessages: true,
-                            channelParticipants: true,
-                        }
-                    });
-                    if (!channel) {
-                        res.status(404).json({error: 'Channel not found'});
-                    }
-                    res.status(200).json({data: channel});
-                } catch (e) {
-                    console.error(e);
-                    next(new InternalServerError());
-                }
-            }
-        ];
-    }
+          if (role == Role.GUEST) {
+            channelParticipant = await this.ctx.channelParticipants.create({
+              data: {
+                role,
+                channel: {
+                  connect: {
+                    id: channelId,
+                  },
+                },
+                guest: {
+                  connect: {
+                    id: roleId,
+                  },
+                },
+              },
+            });
+          } else if (role == Role.VENDOR) {
+            channelParticipant = await this.ctx.channelParticipants.create({
+              data: {
+                role,
+                channel: {
+                  connect: {
+                    id: channelId,
+                  },
+                },
+                vendor: {
+                  connect: {
+                    id: roleId,
+                  },
+                },
+              },
+            });
+          }
 
-    addParticipant() {
-        return [
-            validateRequestParams(z.object({ channelId: z.string(), role: z.nativeEnum(Role), roleId: z.string() })),
-            async (req: Request, res: Response, next: NextFunction) => {
-                try {
-                    const { channelId, role, roleId } = req.params as unknown as { channelId: string, role: Role, roleId: string };
-                    
-                    let channelParticipant: ChannelParticipant | undefined = undefined;
+          console.log(channelParticipant);
+          res.sendStatus(200);
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
 
-                    if (role == Role.GUEST) {
-                        channelParticipant = await this.ctx.channelParticipants.create({
-                            data: {
-                                role,
-                                channel: {
-                                    connect: {
-                                        id: channelId,
-                                    }
-                                },
-                                guest: {
-                                    connect: {
-                                        id: roleId,
-                                    }
-                                }
-                            }
-                        });
-                        
-                    } else if (role == Role.VENDOR) {
-                        channelParticipant = await this.ctx.channelParticipants.create({
-                            data: {
-                                role,
-                                channel: {
-                                    connect: {
-                                        id: channelId,
-                                    }
-                                },
-                                vendor: {
-                                    connect: {
-                                        id: roleId,
-                                    }
-                                }
-                            }
-                        });
+  createMessage() {
+    return [
+      validateRequestParams(z.object({ channelId: z.string() })),
+      validateRequestBody(z.object({ message: z.string(), timestamp: z.date(), roleId: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { channelId } = req.params as unknown as { channelId: string };
+          const { message, timestamp, roleId } = req.body as unknown as { message: string; timestamp: Date; roleId: string };
 
-                    }
+          const sender = await this.ctx.channelParticipants.findFirst({
+            where: {
+              roleId,
+            },
+          });
 
-                    console.log(channelParticipant);
-                    res.sendStatus(200);
+          if (!sender) {
+            return res.status(404).json({ error: 'Channel Paritcipant not found' });
+          }
 
-                } catch (e) {
-                    console.error(e);
-                    next(new InternalServerError());
-                }
-            }
-        ];
-    }
+          const channelMessage = await this.ctx.channelMessages.create({
+            data: {
+              message,
+              timestamp,
+              senderId: sender.id,
+              channelId,
+            },
+          });
 
-    createMessage() {
-        return [
-            validateRequestParams(z.object({ channelId: z.string() })),
-            validateRequestBody(z.object({ message: z.string(), timestamp: z.date(), roleId: z.string() })),
-            async (req: Request, res: Response, next: NextFunction) => {
-                try {
-                    const { channelId } = req.params as unknown as { channelId: string };
-                    const { message, timestamp, roleId } = req.body as unknown as { message: string, timestamp: Date, roleId: string };
+          console.log(channelMessage);
 
-                    const sender = await this.ctx.channelParticipants.findFirst({
-                        where: {
-                            roleId
-                        }
-                    });
+          res.status(200).json({ data: channelMessage });
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
 
-                    if (!sender) {
-                        return res.status(404).json({ error: 'Channel Paritcipant not found' });
-                    }
+  getMessageById() {
+    return [
+      validateRequestParams(z.object({ channelId: z.string(), messageId: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { messageId } = req.params as unknown as { messageId: string };
+          const channelMessage = await this.ctx.channelMessages.findUnqiue({
+            where: {
+              id: messageId,
+            },
+          });
+          if (!channelMessage) {
+            return res.status(404).json({ error: 'Message not found' });
+          }
+          res.status(200).json({ data: channelMessage });
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
 
-                    const channelMessage = await this.ctx.channelMessages.create({
-                        data: {
-                            message,
-                            timestamp,
-                            senderId: sender.id,
-                            channelId    
-                        }
-                    });
+  getAllMessages() {
+    return [
+      validateRequestParams(z.object({ channelId: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { channelId } = req.params as unknown as { channelId: string };
+          const channelMessages = await this.ctx.channelMessages.findMany({
+            where: {
+              channelId,
+            },
+          });
+          if (!channelMessages) {
+            return res.status(404).json({ error: 'Message not found' });
+          }
+          res.status(200).json({ data: channelMessages });
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
 
-                    console.log(channelMessage);
+  editMessage() {
+    return [
+      validateRequestParams(z.object({ channelId: z.string(), messageId: z.string() })),
+      validateRequestBody(z.object({ message: z.string(), timestamp: z.date() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { messageId } = req.params as unknown as { messageId: string };
+          const { message, timestamp } = req.body as unknown as { message: string; timestamp: Date };
 
-                    res.status(200).json({ data: channelMessage });
-                } catch (e) {
-                    console.error(e);
-                    next(new InternalServerError());
-                }
-            }
-        ];
-    }
+          const channelMessage = await this.ctx.channelMessages.update({
+            where: {
+              id: messageId,
+            },
+            data: {
+              message,
+              timestamp,
+            },
+          });
 
-    getMessageById() {
-        return [
-            validateRequestParams(z.object({ channelId:z.string(),  messageId: z.string() })),
-            async (req: Request, res: Response, next: NextFunction) => {
-                try {
-                    const { messageId } = req.params as unknown as { messageId: string };
-                    const channelMessage = await this.ctx.channelMessages.findUnqiue({
-                        where: {
-                            id: messageId,
-                        }
-                    });
-                    if (!channelMessage) {
-                        return res.status(404).json({ error: 'Message not found' });
-                    }
-                    res.status(200).json({data: channelMessage});
-                } catch (e) {
-                    console.error(e);
-                    next(new InternalServerError());
-                }
-            }
-        ];
-    }
+          if (!channelMessage) {
+            return res.status(404).json({ error: 'Message not found' });
+          }
 
-    getAllMessages() {
-        return [
-            validateRequestParams(z.object({ channelId:z.string() })),
-            async (req: Request, res: Response, next: NextFunction) => {
-                try {
-                    const { channelId } = req.params as unknown as { channelId: string };
-                    const channelMessages = await this.ctx.channelMessages.findMany({
-                        where: {
-                            channelId,
-                        }
-                    });
-                    if (!channelMessages) {
-                        return res.status(404).json({ error: 'Message not found'});
-                    }
-                    res.status(200).json({data: channelMessages});
-                } catch (e) {
-                    console.error(e);
-                    next(new InternalServerError());
-                }
-            }
-        ];
-    }
-
-    editMessage() {
-        return [
-            validateRequestParams(z.object({ channelId:z.string(),  messageId: z.string() })),
-            validateRequestBody(z.object({ message: z.string(), timestamp: z.date() })),
-            async (req: Request, res: Response, next: NextFunction) => {
-                try {
-                    const { messageId } = req.params as unknown as { messageId: string };
-                    const { message, timestamp } = req.body as unknown as { message: string, timestamp: Date };
-
-                    const channelMessage = await this.ctx.channelMessages.update({
-                        where: {
-                            id: messageId
-                        },
-                        data: {
-                            message,
-                            timestamp
-                        }
-                    });
-
-                    if (!channelMessage) {
-                        return res.status(404).json({ error: 'Message not found' });
-                    }
-
-                    res.status(201).json({ data: channelMessage });
-                } catch (e) {
-                    console.error(e);
-                    next(new InternalServerError());
-                }
-            }
-        ];
-    }
-
+          res.status(201).json({ data: channelMessage });
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
 }
 
 export default ChannelController;

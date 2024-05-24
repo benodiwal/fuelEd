@@ -4,8 +4,8 @@ import { IDatabase } from 'interfaces';
 export interface IVendorModel {
   db: IDatabase;
   create(args: Prisma.VendorCreateArgs): Promise<Vendor>;
-  
-  createVendorByUserId(userId: string): Promise<Vendor|undefined>;
+
+  createVendorByUserId(userId: string): Promise<Vendor | undefined>;
 
   findFirst(args: Prisma.VendorFindFirstArgs): Promise<Vendor | null>;
 

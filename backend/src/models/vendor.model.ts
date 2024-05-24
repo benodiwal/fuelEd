@@ -12,21 +12,21 @@ export default class VendorModel implements IVendorModel {
     return this.db.client.vendor.create(args);
   }
 
-  async createVendorByUserId(userId: string): Promise<Vendor|undefined> {
+  async createVendorByUserId(userId: string): Promise<Vendor | undefined> {
     const user = await this.db.client.user.findUnique({
-        where: { id: userId }
+      where: { id: userId },
     });
     if (!user) return undefined;
     const vendor = await this.db.client.vendor.create({
-        data: {
-            name: user.name,
-            email: user.email,
-            user: {
-                connect: {
-                    id: user.id,
-                }
-            }
+      data: {
+        name: user.name,
+        email: user.email,
+        user: {
+          connect: {
+            id: user.id,
+          },
         },
+      },
     });
     return vendor;
   }

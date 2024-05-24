@@ -8,4 +8,4 @@ export interface ISendEmail {
   };
 }
 
-export type Role = "guest" | "vendor"
+export type Role = 'guest' | 'vendor';

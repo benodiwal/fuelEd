@@ -1,28 +1,27 @@
-import { validateRequestBody, validateRequestParams } from "validators/validateRequest";
-import AbstractController from "./index.controller";
-import { NextFunction, Request, Response } from "express";
-import { createEventSchema, createPollSchema, createPostSchema } from "zod/schema";
-import { InternalServerError } from "errors/internal-server-error";
-import emailService from "libs/email.lib";
-import { z } from "zod";
-import { Role } from "interfaces/libs";
-import { InviteStatus } from "@prisma/client";
+import { validateRequestBody, validateRequestParams } from 'validators/validateRequest';
+import AbstractController from './index.controller';
+import { NextFunction, Request, Response } from 'express';
+import { createEventSchema, createPollSchema, createPostSchema } from 'zod/schema';
+import { InternalServerError } from 'errors/internal-server-error';
+import emailService from 'libs/email.lib';
+import { z } from 'zod';
+import { Role } from 'interfaces/libs';
+import { InviteStatus } from '@prisma/client';
 
 class EventsController extends AbstractController {
-
   createEvent() {
     return [
       validateRequestBody(createEventSchema),
       async (req: Request, res: Response, next: NextFunction) => {
         try {
           const userId = req.session.currentUserId as string;
-          const { name, startDate, endDate } = req.body as unknown as { name: string, startDate: string, endDate: string };
+          const { name, startDate, endDate } = req.body as unknown as { name: string; startDate: string; endDate: string };
           const host = await this.ctx.hosts.createHostByUserId(userId);
-          
+
           if (!host) {
             return res.sendStatus(404);
           }
-          
+
           await this.ctx.events.create({
             data: {
               name,
@@ -31,17 +30,17 @@ class EventsController extends AbstractController {
               host: {
                 connect: {
                   id: host.id,
-                }
-              }
-            }
+                },
+              },
+            },
           });
-          
+
           res.status(201);
         } catch (e: unknown) {
           console.error(e);
-          next(new InternalServerError());  
+          next(new InternalServerError());
         }
-      }
+      },
     ];
   }
 
@@ -61,28 +60,28 @@ class EventsController extends AbstractController {
           console.error(e);
           next(new InternalServerError());
         }
-      }
+      },
     ];
   }
 
   sendInvite() {
     return [
-      validateRequestParams(z.object({ id: z.string(), role: z.enum(["guest", "vendor"]) })),
+      validateRequestParams(z.object({ id: z.string(), role: z.enum(['guest', 'vendor']) })),
       validateRequestBody(z.object({ email: z.string().email() })),
       async (req: Request, res: Response, next: NextFunction) => {
         try {
           const { email } = req.body as unknown as { email: string };
-          const { id: eventId, role } = req.params as unknown as { id: string, role: Role };
-          
+          const { id: eventId, role } = req.params as unknown as { id: string; role: Role };
+
           const invite = await this.ctx.invites.create({
             data: {
               email,
               event: {
                 connect: {
                   id: eventId,
-                }
-              }
-            }
+                },
+              },
+            },
           });
 
           await emailService.sendEmail({
@@ -91,24 +90,24 @@ class EventsController extends AbstractController {
             data: {
               role: role,
             },
-            eventId
+            eventId,
           });
 
-          res.sendStatus(200);          
+          res.sendStatus(200);
         } catch (e: unknown) {
           console.error(e);
           next(new InternalServerError());
         }
-      }
+      },
     ];
   }
-  
+
   acceptInvite() {
     return [
-      validateRequestParams(z.object({ id: z.string(), inviteId: z.string(), role: z.enum(["guest", "vendor"]) })),
+      validateRequestParams(z.object({ id: z.string(), inviteId: z.string(), role: z.enum(['guest', 'vendor']) })),
       async (req: Request, res: Response, next: NextFunction) => {
         try {
-          const { id: eventId, inviteId, role } = req.params as unknown as { id: string, inviteId: string, role: Role };
+          const { id: eventId, inviteId, role } = req.params as unknown as { id: string; inviteId: string; role: Role };
           const userId = req.session.currentUserId as string;
 
           if (role == 'guest') {
@@ -119,12 +118,15 @@ class EventsController extends AbstractController {
               },
               data: {
                 events: {
-                  connect: [{
-                    id: eventId,
-                  }]
-                }
-              }
+                  connect: [
+                    {
+                      id: eventId,
+                    },
+                  ],
+                },
+              },
             });
+            console.log(guest);
           } else {
             let vendor = await this.ctx.vendors.createVendorByUserId(userId);
             vendor = await this.ctx.vendors.update({
@@ -133,12 +135,15 @@ class EventsController extends AbstractController {
               },
               data: {
                 events: {
-                  connect: [{
-                    id: eventId,
-                  }]
-                }
-              }
+                  connect: [
+                    {
+                      id: eventId,
+                    },
+                  ],
+                },
+              },
             });
+            console.log(vendor);
           }
 
           await this.ctx.invites.update({
@@ -146,8 +151,8 @@ class EventsController extends AbstractController {
               id: inviteId,
             },
             data: {
-              status: InviteStatus.CONFIRMED,          
-            }
+              status: InviteStatus.CONFIRMED,
+            },
           });
 
           res.sendStatus(200);
@@ -155,7 +160,7 @@ class EventsController extends AbstractController {
           console.error(e);
           next(new InternalServerError());
         }
-      }
+      },
     ];
   }
 
@@ -166,7 +171,7 @@ class EventsController extends AbstractController {
       async (req: Request, res: Response, next: NextFunction) => {
         try {
           const { id } = req.params as unknown as { id: string };
-          const { heading, description, sendEmail } = req.body as unknown as { heading: string, description: string, sendEmail: boolean };
+          const { heading, description, sendEmail } = req.body as unknown as { heading: string; description: string; sendEmail: boolean };
 
           await this.ctx.eventPosts.create({
             data: {
@@ -175,8 +180,8 @@ class EventsController extends AbstractController {
               sendEmail,
               event: {
                 connect: { id },
-              }
-            }
+              },
+            },
           });
 
           res.sendStatus(200);
@@ -184,10 +189,10 @@ class EventsController extends AbstractController {
           console.error(e);
           next(new InternalServerError());
         }
-      }
+      },
     ];
   }
-  
+
   getPostById() {
     return [
       validateRequestParams(z.object({ id: z.string(), postId: z.string() })),
@@ -197,18 +202,18 @@ class EventsController extends AbstractController {
           const eventPost = await this.ctx.eventPosts.findUnqiue({
             where: {
               id: postId,
-            }
+            },
           });
           console.log(eventPost);
           res.sendStatus(200);
         } catch (e) {
           console.error(e);
-          next(new InternalServerError()); 
+          next(new InternalServerError());
         }
-      }
+      },
     ];
   }
-  
+
   createPoll() {
     return [
       validateRequestParams(z.object({ id: z.string() })),
@@ -217,11 +222,11 @@ class EventsController extends AbstractController {
         try {
           const { id } = req.params as unknown as { id: string };
           const { heading, description, sendEmail, allowMultiple, options } = req.body as unknown as {
-            heading: string,
-            description: string,
-            sendEmail: boolean,
-            allowMultiple: boolean,
-            options: string[],
+            heading: string;
+            description: string;
+            sendEmail: boolean;
+            allowMultiple: boolean;
+            options: string[];
           };
 
           await this.ctx.eventPolls.create({
@@ -232,25 +237,23 @@ class EventsController extends AbstractController {
               allowMultiple,
               event: {
                 connect: { id },
-              }
-            }
+              },
+            },
           });
 
-          let i = 0;
           for (const option of options) {
             await this.ctx.eventPollOptions.createByPollId(id, option);
-            i++;
           }
 
           res.sendStatus(200);
         } catch (e) {
           console.error(e);
-          next(new InternalServerError()); 
+          next(new InternalServerError());
         }
-      }
+      },
     ];
   }
-  
+
   getPollById() {
     return [
       validateRequestParams(z.object({ id: z.string(), pollId: z.string() })),
@@ -263,18 +266,17 @@ class EventsController extends AbstractController {
             },
             include: {
               options: true,
-            }
+            },
           });
           console.log(eventPoll);
           res.sendStatus(200);
         } catch (e) {
           console.error(e);
-          next(new InternalServerError()); 
+          next(new InternalServerError());
         }
-      }
+      },
     ];
   }
-
 }
 
 export default EventsController;

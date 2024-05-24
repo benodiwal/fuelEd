@@ -1,18 +1,34 @@
 import { Server } from 'socket.io';
 import { Server as HttpServer } from 'http';
-import routes from './routes';
+import Database from 'apps/database';
+import SocketRoutes from './routes';
 
-const setup = async (server: HttpServer) => {
-  const io = new Server(server, {
-    cors: {
-      origin: '*',
-      methods: ['GET', 'POST'],
-    },
-  });
+class Socket {
+  #server: HttpServer;
+  #database: Database;
+  #io: Server;
+  #socketRoutes: SocketRoutes;
 
-  io.on('connection', (socket) => {
-    routes.map((route) => socket.on(route.name, (data) => route.controller(socket, data)));
-  });
-};
+  constructor(database: Database, server: HttpServer) {
+    this.#server = server;
+    this.#database = database;
+    this.#io = new Server(this.#server, {
+      cors: {
+        origin: '*',
+        methods: ['GET', 'POST'],
+      }
+    });
+    this.#socketRoutes = new SocketRoutes(this.#database);
+  }
 
-export default setup;
+  setupRoutes() {
+    return async () => {
+      this.#io.on('connection', (socket) => {
+        this.#socketRoutes.getRoutes().map((route) => socket.on(route.name, (data) => route.controller(socket, data)));
+      });
+    }
+  }
+
+}
+
+export default Socket;

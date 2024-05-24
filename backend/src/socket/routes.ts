@@ -1,18 +1,31 @@
+import Database from 'apps/database';
 import Redis from 'libs/redis.lib';
 
-const redisService = new Redis();
-redisService.createConnection();
+class SocketRoutes {
+  #redisService: Redis;
+  #SOCKET_ID_IN_CHANNEL: string;
+  #USER: string;
+  #ONLINE_USER: string;
+  #USERS_IN_CHANNEL: string;
+  #database: Database;
 
-const SOCKET_ID_IN_CHANNEL = 'socketIdInChannel-';
-const USER = 'user-';
-const ONLINE_USER = 'online-user-';
-const USERS_IN_CHANNEL = 'usersInChannel-';
+  constructor(database: Database) {
+    this.#redisService = new Redis();
+    this.#redisService.createConnection(); 
+    this.#database = database;
 
-const routes = [
+    this.#SOCKET_ID_IN_CHANNEL = 'socketIdInChannel-';
+    this.#USER = 'user-';
+    this.#ONLINE_USER = 'online-user-';
+    this.#USERS_IN_CHANNEL = 'usersInChannel-';
+  }
+
+  getRoutes() {
+    return [
   {
     name: 'online',
     controller: async (socket: any, { userId }: any) => {
-      await redisService.redis?.set(`${ONLINE_USER}${socket.id}`, userId);
+      await this.#redisService.redis?.set(`${this.#ONLINE_USER}${socket.id}`, userId);
       socket.join(userId);
     },
   },
@@ -20,9 +33,9 @@ const routes = [
     name: 'joinChannel',
     controller: async (socket: any, { channelId, userId }: any) => {
       await Promise.all([
-        redisService.redis?.set(`${SOCKET_ID_IN_CHANNEL}${socket.id}`, channelId),
-        redisService.redis?.set(`${USER}${socket.id}`, userId),
-        redisService.redis?.hSet(`${USERS_IN_CHANNEL}${socket.id}`, userId, socket.id),
+        this.#redisService.redis?.set(`${this.#SOCKET_ID_IN_CHANNEL}${socket.id}`, channelId),
+        this.#redisService.redis?.set(`${this.#USER}${socket.id}`, userId),
+        this.#redisService.redis?.hSet(`${this.#USERS_IN_CHANNEL}${socket.id}`, userId, socket.id),
       ]);
 
       socket.join(channelId);
@@ -31,18 +44,21 @@ const routes = [
   {
     name: 'leaveChannel',
     controller: async (socket: any, channelId: any) => {
-      redisService.redis?.del(`${SOCKET_ID_IN_CHANNEL}${socket.id}`);
+      this.#redisService.redis?.del(`${this.#SOCKET_ID_IN_CHANNEL}${socket.id}`);
       socket.leave(channelId);
     },
   },
   {
     name: 'logOut',
     controller: async (socket: any, userId: any) => {
-      redisService.redis?.del(`${ONLINE_USER}${socket.id}`);
-      redisService.redis?.del(`${SOCKET_ID_IN_CHANNEL}${socket.id}`);
+      this.#redisService.redis?.del(`${this.#ONLINE_USER}${socket.id}`);
+      this.#redisService.redis?.del(`${this.#SOCKET_ID_IN_CHANNEL}${socket.id}`);
       socket.leave(userId);
     },
   },
-];
+    ];
+  }
 
-export default routes;
+}
+
+export default SocketRoutes;

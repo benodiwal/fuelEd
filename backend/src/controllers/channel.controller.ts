@@ -1,6 +1,6 @@
 import { validateRequestBody, validateRequestParams } from "validators/validateRequest";
 import AbstractController from "./index.controller";
-import { z } from "zod";
+import { date, z } from "zod";
 import { NextFunction, Request, Response } from "express";
 import { InternalServerError } from "errors/internal-server-error";
 import { ChannelParticipant, ChannelType, Role } from "@prisma/client";
@@ -157,7 +157,7 @@ class ChannelController extends AbstractController {
                         }
                     });
                     if (!channel) {
-                        res.status(404).json({data: 'Channel not found'});
+                        res.status(404).json({error: 'Channel not found'});
                     }
                     res.status(200).json({data: channel});
                 } catch (e) {
@@ -224,7 +224,90 @@ class ChannelController extends AbstractController {
         ];
     }
 
+    createMessage() {
+        return [
+            validateRequestParams(z.object({ channelId: z.string() })),
+            validateRequestBody(z.object({ message: z.string(), timestamp: z.date(), roleId: z.string() })),
+            async (req: Request, res: Response, next: NextFunction) => {
+                try {
+                    const { channelId } = req.params as unknown as { channelId: string };
+                    const { message, timestamp, roleId } = req.body as unknown as { message: string, timestamp: Date, roleId: string };
 
+                    const sender = await this.ctx.channelParticipants.findFirst({
+                        where: {
+                            roleId
+                        }
+                    });
+
+                    if (!sender) {
+                        return res.status(404).json({ error: 'Channel Paritcipant not found' });
+                    }
+
+                    const channelMessage = await this.ctx.channelMessages.create({
+                        data: {
+                            message,
+                            timestamp,
+                            senderId: sender.id,
+                            channelId    
+                        }
+                    });
+
+                    console.log(channelMessage);
+
+                    res.status(200).json({ data: channelMessage });
+                } catch (e) {
+                    console.error(e);
+                    next(new InternalServerError());
+                }
+            }
+        ];
+    }
+
+    getMessageById() {
+        return [
+            validateRequestParams(z.object({ channelId:z.string(),  messageId: z.string() })),
+            async (req: Request, res: Response, next: NextFunction) => {
+                try {
+                    const { messageId } = req.params as unknown as { messageId: string };
+                    const channelMessage = await this.ctx.channelMessages.findUnqiue({
+                        where: {
+                            id: messageId,
+                        }
+                    });
+                    if (!channelMessage) {
+                        return res.status(404).json({ error: 'Message not found' });
+                    }
+                    res.status(200).json({data: channelMessage});
+                } catch (e) {
+                    console.error(e);
+                    next(new InternalServerError());
+                }
+            }
+        ];
+    }
+
+    getAllMessages() {
+        return [
+            validateRequestParams(z.object({ channelId:z.string() })),
+            async (req: Request, res: Response, next: NextFunction) => {
+                try {
+                    const { channelId } = req.params as unknown as { channelId: string };
+                    const channelMessages = await this.ctx.channelMessages.findMany({
+                        where: {
+                            channelId,
+                        }
+                    });
+                    if (!channelMessages) {
+                        return res.status(404).json({ error: 'Message not found'});
+                    }
+                    res.status(200).json({data: channelMessages});
+                } catch (e) {
+                    console.error(e);
+                    next(new InternalServerError());
+                }
+            }
+        ];
+    }
 
 }
 

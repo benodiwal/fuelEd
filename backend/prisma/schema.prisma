@@ -186,7 +186,7 @@ model ChannelParticipant {
   channelId String
   channel Channel @relation(fields: [channelId], references: [id])
 
-  channelMessage ChannelMessage[]
+  channelMessages ChannelMessage[]
 }
 
 model ChannelMessage {

@@ -16,7 +16,7 @@ export default abstract class AbstractRouter {
   register() {
     this.registerHealthRoutes();
     this.registerRoutes();
-    this.#engine.use(this.#path, this.#router);
+    this.#engine.use(this.#path, this.registerMiddlewares(), this.#router);
   }
 
   extendRouter(path: string, router: Router) {

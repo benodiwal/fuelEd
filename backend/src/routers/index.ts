@@ -15,8 +15,12 @@ export default abstract class AbstractRouter {
 
   register() {
     this.registerHealthRoutes();
+    const middlewares = this.registerMiddlewares();
+    for (const middleware of middlewares) {
+      this.#router.use(middleware());
+    }
     this.registerRoutes();
-    this.#engine.use(this.#path, this.registerMiddlewares(), this.#router);
+    this.#engine.use(this.#path, this.#router);
   }
 
   extendRouter(path: string, router: Router) {

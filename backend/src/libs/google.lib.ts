@@ -13,7 +13,11 @@ class GoogleOAuthClient {
   }
 
   generateAuthUrl(): string {
-    return this.#client.generateAuthUrl({ scope: ['profile', 'email'] });
+    return this.#client.generateAuthUrl({
+      access_type: 'offline',
+      response_type: 'code',
+      scope: ['profile', 'email'],
+    });
   }
 
   async getTokenAndVerifyFromCode(code: string) {
@@ -22,6 +26,7 @@ class GoogleOAuthClient {
       const verifyResponse = await this.#client.verifyIdToken({ idToken: tokens.id_token as string, audience: getEnvVar('GOOGLE_OAUTH_CLIENT_ID') });
       return verifyResponse.getPayload() as TokenPayload;
     } catch (e: unknown) {
+      console.log(e);
       const error = e as gaxios.GaxiosError;
       throw new Error(JSON.stringify({ name: error.name, message: error.message, status: error.status }));
     }

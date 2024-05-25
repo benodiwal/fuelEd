@@ -8,6 +8,8 @@ import { errorHandler } from 'middlewares/error.middleware';
 import { IDatabase } from 'interfaces';
 import UserRouter from 'routers/user';
 import EventsRouter from 'routers/events';
+import cors from 'cors';
+import getEnvVar from 'env/index';
 
 export default class Server {
   db: IDatabase;
@@ -19,13 +21,20 @@ export default class Server {
   }
 
   #registerHandlers() {
+    this.engine.use(cors({
+      origin: 'http://localhost:3000',
+      credentials: true,
+    }));
     this.engine.use(logger);
     this.engine.use(Express.json());
 
     this.engine.use(
       cookieSession({
-        signed: false,
-        secure: true,
+        name: 'session',
+        keys: [getEnvVar("JWT_SIGNING_KEY")],
+        secure: false,
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
       }),
     );
 

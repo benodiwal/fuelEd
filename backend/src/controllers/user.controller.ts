@@ -10,6 +10,34 @@ class UserController extends AbstractController {
       },
     ];
   }
+
+  me() {
+    return [
+      async (req: Request, res: Response) => {
+        try {
+          const currentUserId = req.session.currentUserId;
+          if (!currentUserId) {
+            return res.sendStatus(404);
+          }
+
+          const user = await this.ctx.users.findUnqiue({
+            where: {
+              id: currentUserId,
+            }
+          });
+
+          if (!user) {
+            return res.sendStatus(404);
+          }
+
+          res.status(200).json({ data: user });
+
+        } catch (e) {
+
+        }
+      }
+    ];
+  }
 }
 
 export default UserController;

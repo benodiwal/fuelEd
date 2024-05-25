@@ -8,6 +8,6 @@ export default class AuthRouter extends AbstractRouter {
 
   registerRoutes(): void {
     const authController = new AuthController(this.ctx);
-    this.registerGET('/google', authController.getAuthGoogleCallback());
+    this.registerPOST('/google', authController.getAuthGoogleCallback());
   }
 }

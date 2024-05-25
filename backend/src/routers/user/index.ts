@@ -10,5 +10,6 @@ export default class UserRouter extends AbstractRouter {
   registerRoutes(): void {
     const userController = new UserController(this.ctx);
     this.registerGET('/logout', userController.getLogout());
+    this.registerPOST('/me', userController.me());
   }
 }

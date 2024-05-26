@@ -49,6 +49,7 @@ class EventsController extends AbstractController {
       },
     ];
   }
+
   createEvent() {
     return [
       validateRequestBody(createEventSchema),
@@ -343,6 +344,43 @@ class EventsController extends AbstractController {
           next(new InternalServerError());
         }
       },
+    ];
+  }
+
+  updatePollById() {
+    return [
+      validateRequestParams(z.object({ id: z.string(), pollId: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+
+        try {
+         const { pollId } = req.params as unknown as { pollId: string };
+
+        const eventPoll = await this.ctx.eventPollOptions.findFirst({
+          where: {
+            eventPollId: pollId,
+          }
+        });
+
+        if (!eventPoll) {
+          return res.sendStatus(404);
+        }
+
+        await this.ctx.eventPollOptions.update({
+          where: {
+            id: eventPoll.id
+          },
+          data: {
+            count: eventPoll.count + 1,
+          }
+        });
+
+        res.sendStatus(201);         
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+
+      }
     ];
   }
 

@@ -242,7 +242,7 @@ class EventsController extends AbstractController {
             options: string[];
           };
 
-          await this.ctx.eventPolls.create({
+          const eventPoll = await this.ctx.eventPolls.create({
             data: {
               heading,
               description,
@@ -255,7 +255,7 @@ class EventsController extends AbstractController {
           });
 
           for (const option of options) {
-            await this.ctx.eventPollOptions.createByPollId(id, option);
+            await this.ctx.eventPollOptions.createByPollId(eventPoll.id, option);
           }
 
           res.sendStatus(200);

@@ -23,6 +23,8 @@ import { IChannelMessageModel } from 'interfaces/models/channelMessage.model';
 import ChannelModel from './channel.model';
 import ChannelParticipantModel from './channelParticipant.model';
 import ChannelMessageModel from './channelMessage.model';
+import { IEventFloorPlanModel } from 'interfaces/models/eventFloorPlan.model';
+import EventFloorPlanModel from './eventFloorPlan';
 
 export default class Context implements IContext {
   db: IDatabase;
@@ -30,6 +32,7 @@ export default class Context implements IContext {
   events: IEventModel;
   eventPosts: IEventPostModel;
   eventPolls: IEventPollModel;
+  eventFloorPlans: IEventFloorPlanModel;
   eventPollOptions: IEventPollOptionsModel;
   hosts: IHostModel;
   invites: IInviteModel;
@@ -53,5 +56,6 @@ export default class Context implements IContext {
     this.channels = new ChannelModel(database);
     this.channelParticipants = new ChannelParticipantModel(database);
     this.channelMessages = new ChannelMessageModel(database);
+    this.eventFloorPlans = new EventFloorPlanModel(database);
   }
 }

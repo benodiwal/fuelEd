@@ -9,6 +9,46 @@ import { Role } from 'interfaces/libs';
 import { InviteStatus } from '@prisma/client';
 
 class EventsController extends AbstractController {
+  getAllEventsByUserId() {
+    return [
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const userId = req.session.currentUserId as string;
+
+          // const guest = await this.ctx.guests.findMany({
+          //   where: {
+          //     userId,
+          //   },
+          // });
+
+          const hostedEvents = await this.ctx.events.findMany({
+            where: {
+              host: {
+                userId: userId,
+              },
+            },
+          });
+
+          // const guestEvents = await this.ctx.events.findMany({
+          //   where: {
+          //     guests: {
+          //       some: {
+          //         guestId: guest?.id,
+          //       },
+          //     },
+          //   },
+          // });
+
+          const allEvents = [...hostedEvents];
+
+          res.status(200).send({ data: allEvents });
+        } catch (e: unknown) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
   createEvent() {
     return [
       validateRequestBody(createEventSchema),
@@ -61,13 +101,28 @@ class EventsController extends AbstractController {
       async (req: Request, res: Response, next: NextFunction) => {
         try {
           const { id } = req.params as unknown as { id: string };
+
           const event = await this.ctx.events.findUnqiue({
             where: {
               id,
             },
+            include: {
+              host: true,
+              guests: true,
+              vendors: true,
+              rsvps: true,
+              eventPosts: true,
+              eventPolls: {
+                include: {
+                  options: true,
+                },
+              },
+
+              eventHostMessage: true,
+            },
           });
 
-          return res.status(200).send(event);
+          return res.status(200).send({ data: event });
         } catch (e: unknown) {
           console.error(e);
           next(new InternalServerError());
@@ -82,7 +137,7 @@ class EventsController extends AbstractController {
       validateRequestBody(z.object({ name: z.string(), email: z.string().email() })),
       async (req: Request, res: Response, next: NextFunction) => {
         try {
-          const { name, email } = req.body as unknown as { name: string, email: string };
+          const { name, email } = req.body as unknown as { name: string; email: string };
           const { id: eventId, role } = req.params as unknown as { id: string; role: Role };
 
           const invite = await this.ctx.invites.create({
@@ -131,14 +186,14 @@ class EventsController extends AbstractController {
                 guest: {
                   connect: {
                     id: guest?.id,
-                  }
+                  },
                 },
                 event: {
                   connect: {
                     id: eventId,
-                  }
-                }
-              }
+                  },
+                },
+              },
             });
           } else {
             let vendor = await this.ctx.vendors.createVendorByUserId(userId);
@@ -148,14 +203,14 @@ class EventsController extends AbstractController {
                 vendor: {
                   connect: {
                     id: vendor?.id,
-                  }
+                  },
                 },
                 event: {
                   connect: {
                     id: eventId,
-                  }
-                }
-              }
+                  },
+                },
+              },
             });
           }
 
@@ -186,7 +241,7 @@ class EventsController extends AbstractController {
           const { id } = req.params as unknown as { id: string };
           const { heading, description, sendEmail } = req.body as unknown as { heading: string; description: string; sendEmail: boolean };
 
-          await this.ctx.eventPosts.create({
+          const post = await this.ctx.eventPosts.create({
             data: {
               heading,
               description,
@@ -197,7 +252,7 @@ class EventsController extends AbstractController {
             },
           });
 
-          res.sendStatus(200);
+          res.status(200).send({ data: post });
         } catch (e) {
           console.error(e);
           next(new InternalServerError());
@@ -285,6 +340,40 @@ class EventsController extends AbstractController {
           res.sendStatus(200);
         } catch (e) {
           console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
+
+  createVenuePlan() {
+    return [
+      validateRequestBody(z.object({ title: z.string(), json: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const userId = req.session.currentUserId as string;
+          console.log(userId);
+
+          const eventId = req.params['id'];
+          console.log(eventId);
+
+          const { title, json } = req.body as unknown as { title: string; json: string };
+
+          await this.ctx.eventFloorPlans.create({
+            data: {
+              title,
+              floorPlanJson: json,
+              event: {
+                connect: {
+                  id: eventId,
+                },
+              },
+            },
+          });
+
+          res.status(200).send({ data: eventId });
+        } catch (error) {
+          console.error(error);
           next(new InternalServerError());
         }
       },

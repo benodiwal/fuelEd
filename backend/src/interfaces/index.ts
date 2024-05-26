@@ -11,6 +11,7 @@ import { IEventPollOptionsModel } from './models/eventPollOptions.model';
 import { IChannelModel } from './models/channel.model';
 import { IChannelParticipantModel } from './models/channelParticipant.model';
 import { IChannelMessageModel } from './models/channelMessage.model';
+import { IEventFloorPlanModel } from './models/eventFloorPlan.model';
 
 export type txClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
 
@@ -32,4 +33,5 @@ export interface IContext {
   channels: IChannelModel;
   channelParticipants: IChannelParticipantModel;
   channelMessages: IChannelMessageModel;
+  eventFloorPlans: IEventFloorPlanModel;
 }

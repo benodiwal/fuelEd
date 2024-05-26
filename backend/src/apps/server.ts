@@ -21,17 +21,19 @@ export default class Server {
   }
 
   #registerHandlers() {
-    this.engine.use(cors({
-      origin: 'http://localhost:3000',
-      credentials: true,
-    }));
+    this.engine.use(
+      cors({
+        origin: 'http://localhost:3000',
+        credentials: true,
+      }),
+    );
     this.engine.use(logger);
     this.engine.use(Express.json());
 
     this.engine.use(
       cookieSession({
         name: 'session',
-        keys: [getEnvVar("JWT_SIGNING_KEY")],
+        keys: [getEnvVar('JWT_SIGNING_KEY')],
         secure: false,
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,

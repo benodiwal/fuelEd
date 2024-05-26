@@ -49,7 +49,7 @@ model Guest {
   phone String?
   
   user User @relation(fields: [userId], references: [id])
-  userId String
+  userId String 
 
   rsvps RSVP?
 
@@ -77,6 +77,9 @@ model EventPost {
   eventId String
 
   event Event @relation(fields: [eventId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model EventPoll {
@@ -89,6 +92,10 @@ model EventPoll {
   options EventPollOptions[]
 
   event Event @relation(fields: [eventId], references: [id])
+  
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model EventPollOptions {
@@ -177,9 +184,10 @@ model Event {
 
 model EventFloorPlan {
   id    String  @id @default(cuid())
+  title String
   floorPlanJson Json
 
-  eventId String @unique
+  eventId String
   event Event @relation(fields: [eventId], references: [id])
   
   createdAt DateTime @default(now())

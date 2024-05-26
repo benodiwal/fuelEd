@@ -1,4 +1,5 @@
 export interface ISendEmail {
+  name: string;
   email: string;
   inviteId: string;
   eventId: string;

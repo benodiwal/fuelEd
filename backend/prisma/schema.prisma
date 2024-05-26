@@ -54,9 +54,19 @@ model Guest {
   rsvps RSVP?
 
   channelParticipants ChannelParticipant[]
-  events Event[]
+  events EventGuest[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model EventGuest {
+  guestId String
+  eventId String
+
+  guest Guest @relation(fields: [guestId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@id([guestId, eventId])
 }
 
 model EventPost {
@@ -101,9 +111,18 @@ model Vendor{
   contract Contract?
 
   channelParticipants ChannelParticipant[]
-  events Event[]
+  events EventVendor[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model EventVendor {
+  eventId String
+  vendorId String
+  event Event @relation(fields: [eventId], references: [id])
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+
+  @@id([eventId, vendorId])
 }
 
 model Contract {
@@ -140,8 +159,8 @@ model Event {
 
   rsvps RSVP[]
   invites Invite[]
-  guests Guest[]
-  vendors Vendor[]
+  guests EventGuest[]
+  vendors EventVendor[]
   eventPosts EventPost[]
   eventPolls EventPoll[]
   venue Venue?

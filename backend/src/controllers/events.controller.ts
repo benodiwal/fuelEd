@@ -79,10 +79,10 @@ class EventsController extends AbstractController {
   sendInvite() {
     return [
       validateRequestParams(z.object({ id: z.string(), role: z.enum(['guest', 'vendor']) })),
-      validateRequestBody(z.object({ email: z.string().email() })),
+      validateRequestBody(z.object({ name: z.string(), email: z.string().email() })),
       async (req: Request, res: Response, next: NextFunction) => {
         try {
-          const { email } = req.body as unknown as { email: string };
+          const { name, email } = req.body as unknown as { name: string, email: string };
           const { id: eventId, role } = req.params as unknown as { id: string; role: Role };
 
           const invite = await this.ctx.invites.create({
@@ -97,6 +97,7 @@ class EventsController extends AbstractController {
           });
 
           await emailService.sendEmail({
+            name,
             email,
             inviteId: invite.id,
             data: {
@@ -123,21 +124,23 @@ class EventsController extends AbstractController {
           const userId = req.session.currentUserId as string;
 
           if (role == 'guest') {
-            let guest = await this.ctx.guests.createGuestByUserId(userId);
-            guest = await this.ctx.guests.update({
-              where: {
-                id: guest?.id,
-              },
+            const guest = await this.ctx.guests.createGuestByUserId(userId);
+
+            await this.ctx.db.client.eventGuest.create({
               data: {
-                events: {
-                  connect: [
-                    {
-                      id: eventId,
-                    },
-                  ],
+                guest: {
+                  connect: {
+                    id: guest?.id,
+                  }
                 },
-              },
+                event: {
+                  connect: {
+                    id: eventId,
+                  }
+                }
+              }
             });
+            
             console.log(guest);
           } else {
             let vendor = await this.ctx.vendors.createVendorByUserId(userId);
@@ -148,9 +151,6 @@ class EventsController extends AbstractController {
               data: {
                 events: {
                   connect: [
-                    {
-                      id: eventId,
-                    },
                   ],
                 },
               },

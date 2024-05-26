@@ -49,7 +49,7 @@ model Guest {
   phone String?
   
   user User @relation(fields: [userId], references: [id])
-  userId String @unique
+  userId String
 
   rsvps RSVP?
 
@@ -107,7 +107,7 @@ model Vendor{
   phone String?
   vendorType VendorType?
   user User @relation(fields: [userId], references: [id])
-  userId String @unique
+  userId String
   contract Contract?
 
   channelParticipants ChannelParticipant[]

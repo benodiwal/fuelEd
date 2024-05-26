@@ -140,22 +140,23 @@ class EventsController extends AbstractController {
                 }
               }
             });
-            
-            console.log(guest);
           } else {
             let vendor = await this.ctx.vendors.createVendorByUserId(userId);
-            vendor = await this.ctx.vendors.update({
-              where: {
-                id: vendor?.id,
-              },
+
+            await this.ctx.db.client.eventVendor.create({
               data: {
-                events: {
-                  connect: [
-                  ],
+                vendor: {
+                  connect: {
+                    id: vendor?.id,
+                  }
                 },
-              },
+                event: {
+                  connect: {
+                    id: eventId,
+                  }
+                }
+              }
             });
-            console.log(vendor);
           }
 
           await this.ctx.invites.update({

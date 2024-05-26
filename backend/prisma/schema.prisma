@@ -115,7 +115,6 @@ model Contract {
   vendor Vendor @relation(fields: [vendorId], references: [id])
 }
 
-// Répondez s'il vous plaît
 model RSVP{
   id    String  @id @default(cuid())
   status RSVPStatus @default(PENDING)
@@ -132,9 +131,12 @@ model RSVP{
 
 model Event {
   id    String  @id @default(cuid())
-  name  String
-  startDate  DateTime
-  endDate    DateTime
+  title  String
+  description String
+
+  startDate  String
+  endDate    String
+  startTime  String
 
   rsvps RSVP[]
   invites Invite[]
@@ -142,12 +144,55 @@ model Event {
   vendors Vendor[]
   eventPosts EventPost[]
   eventPolls EventPoll[]
-
+  venue Venue?
+  eventHostMessage EventHostMessage?
   channels Channel[]
+  eventFloorPlan EventFloorPlan[]
 
   host  Host    @relation(fields: [hostId], references: [id])
   hostId String @unique
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EventFloorPlan {
+  id    String  @id @default(cuid())
+  floorPlanJson Json
+
+  eventId String @unique
+  event Event @relation(fields: [eventId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+} 
+
+
+
+model EventHostMessage{
+  id    String  @id @default(cuid())
+  message String
+
+  event Event @relation(fields: [eventId], references: [id])
+  eventId String @unique
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
+
+model Venue {
+  id    String  @id @default(cuid())
+  name  String
+
+  address String
+  zipCode String
+  city String
+  state String
+
+  event Event @relation(fields: [eventId], references: [id])
+  eventId String @unique
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

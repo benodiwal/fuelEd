@@ -16,6 +16,7 @@ class UserController extends AbstractController {
       async (req: Request, res: Response) => {
         try {
           const currentUserId = req.session.currentUserId;
+          console.log('currentUserId', currentUserId);
           if (!currentUserId) {
             return res.sendStatus(404);
           }
@@ -23,19 +24,21 @@ class UserController extends AbstractController {
           const user = await this.ctx.users.findUnqiue({
             where: {
               id: currentUserId,
-            }
+            },
           });
+
+          console.log('user', user);
 
           if (!user) {
             return res.sendStatus(404);
           }
 
           res.status(200).json({ data: user });
-
         } catch (e) {
-
+          console.error(e);
+          res.sendStatus(500);
         }
-      }
+      },
     ];
   }
 }

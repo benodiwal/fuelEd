@@ -15,18 +15,28 @@ class EventsController extends AbstractController {
       async (req: Request, res: Response, next: NextFunction) => {
         try {
           const userId = req.session.currentUserId as string;
-          const { name, startDate, endDate } = req.body as unknown as { name: string; startDate: string; endDate: string };
+
+          const { title, description, startDate, endDate, startTime } = req.body as unknown as {
+            title: string;
+            startDate: string;
+            endDate: string;
+            description: string;
+            startTime: string;
+          };
+
           const host = await this.ctx.hosts.createHostByUserId(userId);
 
           if (!host) {
             return res.sendStatus(404);
           }
 
-          await this.ctx.events.create({
+          const event = await this.ctx.events.create({
             data: {
-              name,
+              title,
+              description,
               startDate,
               endDate,
+              startTime,
               host: {
                 connect: {
                   id: host.id,
@@ -35,7 +45,9 @@ class EventsController extends AbstractController {
             },
           });
 
-          res.status(201);
+          res.status(201).json({
+            data: event,
+          });
         } catch (e: unknown) {
           console.error(e);
           next(new InternalServerError());

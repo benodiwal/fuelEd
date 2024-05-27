@@ -26,7 +26,6 @@ model User{
   updatedAt DateTime @updatedAt
 }
 
-
 model Host {
   id    String  @id @default(cuid())
   name  String
@@ -41,10 +40,16 @@ model Host {
   updatedAt DateTime @updatedAt
 }
 
-
 model Guest {
   id    String  @id @default(cuid())
   name  String
+
+
+  nickName String?
+  avatar String @default("")
+  profileCompleted Boolean @default(false)
+
+
   email String
   phone String?
   
@@ -92,8 +97,7 @@ model EventPoll {
   options EventPollOptions[]
 
   event Event @relation(fields: [eventId], references: [id])
-  
-  
+    
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -103,7 +107,6 @@ model EventPollOptions {
   text String
   count Int @default(0)
   eventPollId String
-
   eventPoll EventPoll @relation(fields: [eventPollId], references: [id])
 }
 
@@ -177,7 +180,7 @@ model Event {
 
   host  Host    @relation(fields: [hostId], references: [id])
   hostId String @unique
-
+    
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -193,7 +196,6 @@ model EventFloorPlan {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 } 
-
 
 
 model EventHostMessage{
@@ -229,7 +231,7 @@ model Invite {
   status InviteStatus @default(PENDING)
   email String
   event Event @relation(fields: [eventId], references: [id])
-  eventId String @unique
+  eventId String 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

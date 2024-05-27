@@ -1,12 +1,12 @@
 import { validateRequestBody, validateRequestParams } from 'validators/validateRequest';
 import AbstractController from './index.controller';
 import { NextFunction, Request, Response } from 'express';
-import { createEventSchema, createPollSchema, createPostSchema } from 'zod/schema';
+import { createEventSchema, createPollSchema, createPostSchema, updatePollOptionSchema } from 'zod/schema';
 import { InternalServerError } from 'errors/internal-server-error';
 import emailService from 'libs/email.lib';
 import { z } from 'zod';
 import { Role } from 'interfaces/libs';
-import { InviteStatus } from '@prisma/client';
+import { InviteStatus, RSVPStatus } from '@prisma/client';
 
 class EventsController extends AbstractController {
   getAllEventsByUserId() {
@@ -196,6 +196,23 @@ class EventsController extends AbstractController {
                 },
               },
             });
+
+            // creating a pending state RSVP for the guest and the event....
+            await this.ctx.rsvp.create({
+              data: {
+                event: {
+                  connect: {
+                    id: eventId,
+                  },
+                },
+                guest: {
+                  connect: {
+                    id: guest?.id,
+                  },
+                },
+                status: 'PENDING',
+              },
+            });
           } else {
             let vendor = await this.ctx.vendors.createVendorByUserId(userId);
 
@@ -350,37 +367,38 @@ class EventsController extends AbstractController {
   updatePollById() {
     return [
       validateRequestParams(z.object({ id: z.string(), pollId: z.string() })),
+      validateRequestBody(updatePollOptionSchema),
       async (req: Request, res: Response, next: NextFunction) => {
-
         try {
-         const { pollId } = req.params as unknown as { pollId: string };
+          const { pollId, id } = req.params as { pollId: string; id: string };
 
-        const eventPoll = await this.ctx.eventPollOptions.findFirst({
-          where: {
-            eventPollId: pollId,
+          const { count } = req.body;
+
+          const eventPoll = await this.ctx.eventPollOptions.findFirst({
+            where: { eventPollId: pollId },
+          });
+
+          if (!eventPoll) {
+            return res.sendStatus(404);
           }
-        });
 
-        if (!eventPoll) {
-          return res.sendStatus(404);
-        }
+          const updatedOption = await this.ctx.eventPollOptions.update({
+            where: { id },
+            data: { count: count },
+          });
 
-        await this.ctx.eventPollOptions.update({
-          where: {
-            id: eventPoll.id
-          },
-          data: {
-            count: eventPoll.count + 1,
+          if (!updatedOption) {
+            return res.sendStatus(404);
           }
-        });
 
-        res.sendStatus(201);         
+          res.status(200).send({
+            data: 'Successfully updated',
+          });
         } catch (e) {
           console.error(e);
           next(new InternalServerError());
         }
-
-      }
+      },
     ];
   }
 
@@ -412,6 +430,82 @@ class EventsController extends AbstractController {
           res.status(200).send({ data: eventId });
         } catch (error) {
           console.error(error);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
+
+  acceptRSVP() {
+    return [
+      validateRequestParams(z.object({ id: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const userId = req.session.currentUserId as string;
+          const { id: eventId } = req.params as unknown as { id: string };
+
+          const guest = await this.ctx.guests.findFirst({
+            where: {
+              userId: userId,
+              events: {
+                some: {
+                  eventId: eventId,
+                },
+              },
+            },
+          });
+
+          const rsvp = await this.ctx.rsvp.update({
+            where: {
+              eventId: eventId,
+              guestId: guest?.id,
+            },
+            data: {
+              status: RSVPStatus.CONFIRMED,
+            },
+          });
+
+          res.status(200).send({ data: rsvp });
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
+
+  declineRSVP() {
+    return [
+      validateRequestParams(z.object({ id: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const userId = req.session.currentUserId as string;
+          const { id: eventId } = req.params as unknown as { id: string };
+
+          const guest = await this.ctx.guests.findFirst({
+            where: {
+              userId: userId,
+              events: {
+                some: {
+                  eventId: eventId,
+                },
+              },
+            },
+          });
+
+          const rsvp = await this.ctx.rsvp.update({
+            where: {
+              eventId: eventId,
+              guestId: guest?.id,
+            },
+            data: {
+              status: RSVPStatus.CANCELLED,
+            },
+          });
+
+          res.status(200).send({ data: rsvp });
+        } catch (e) {
+          console.error(e);
           next(new InternalServerError());
         }
       },

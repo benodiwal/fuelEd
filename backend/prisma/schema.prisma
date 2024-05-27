@@ -248,11 +248,16 @@ model Channel {
 
 model ChannelParticipant {
   id String @id @default(cuid())
-  roleId String @unique
   role Role
-  host Host? @relation(fields: [roleId], references: [id], map: "ChannelParticipant_hostId_fkey")
-  guest Guest? @relation(fields: [roleId], references: [id], map: "ChannelParticipant_guestId_fkey")
-  vendor Vendor? @relation(fields: [roleId], references: [id], map: "ChannelParticipant_vendorId_fkey")
+
+  hostId String?
+  host Host? @relation(fields: [hostId], references: [id])
+
+  guestId String?
+  guest Guest? @relation(fields: [guestId], references: [id])
+
+  vendorId String?
+  vendor Vendor? @relation(fields: [vendorId], references: [id])
 
   channelId String
   channel Channel @relation(fields: [channelId], references: [id])

@@ -12,16 +12,15 @@ class ChannelController extends AbstractController {
       async (req: Request, res: Response, next: NextFunction) => {
         try {
           const { name, channelType } = req.body as unknown as { name: string; channelType: ChannelType };
-          // TODO: i have to write a middleware to forward the eventId as req.eventId
-          const eventId = '';
-          const event = await this.ctx.events.findFirst({
+          const eventId = req.eventId as string;
+          const event = await this.ctx.events.findUnqiue({
             where: {
               id: eventId,
             },
           });
 
           if (!event) {
-            return res.status(404).json({ error: 'Event not found' });
+            return res.status(400).json({ error: 'Event not found' });
           }
 
           const hostId = event.hostId;
@@ -49,8 +48,8 @@ class ChannelController extends AbstractController {
               host: {
                 connect: {
                   id: hostId,
-                },
-              },
+                }
+              }
             },
           });
 
@@ -70,15 +69,15 @@ class ChannelController extends AbstractController {
       async (req: Request, res: Response, next: NextFunction) => {
         try {
           const { name, roleId } = req.body as unknown as { name: string; roleId: string };
-          const eventId = '';
-          const event = await this.ctx.events.findFirst({
+          const eventId = req.eventId as string;
+          const event = await this.ctx.events.findUnqiue({
             where: {
               id: eventId,
             },
           });
 
           if (!event) {
-            return res.status(404).json({ error: 'Event not found' });
+            return res.status(400).json({ error: 'Event not found' });
           }
 
           const hostId = event.hostId;
@@ -154,7 +153,7 @@ class ChannelController extends AbstractController {
             },
           });
           if (!channel) {
-            res.status(404).json({ error: 'Channel not found' });
+            res.status(400).json({ error: 'Channel not found' });
           }
           res.status(200).json({ data: channel });
         } catch (e) {
@@ -229,12 +228,16 @@ class ChannelController extends AbstractController {
 
           const sender = await this.ctx.channelParticipants.findFirst({
             where: {
-              roleId,
+              OR: [
+                { hostId: roleId},
+                { guestId: roleId },
+                { vendorId: roleId }
+              ]
             },
           });
 
           if (!sender) {
-            return res.status(404).json({ error: 'Channel Paritcipant not found' });
+            return res.status(400).json({ error: 'Channel Paritcipant not found' });
           }
 
           const channelMessage = await this.ctx.channelMessages.create({

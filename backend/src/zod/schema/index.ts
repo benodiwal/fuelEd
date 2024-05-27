@@ -21,3 +21,7 @@ export const createPollSchema = z.object({
   allowMultiple: z.boolean(),
   options: z.array(z.string()),
 });
+
+export const updatePollOptionSchema = z.object({
+  count: z.number(),
+});

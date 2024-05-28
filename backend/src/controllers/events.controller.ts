@@ -214,7 +214,7 @@ class EventsController extends AbstractController {
               },
             });
           } else {
-            let vendor = await this.ctx.vendors.createVendorByUserId(userId);
+            const vendor = await this.ctx.vendors.createVendorByUserId(userId);
 
             await this.ctx.db.client.eventVendor.create({
               data: {
@@ -243,6 +243,81 @@ class EventsController extends AbstractController {
 
           res.sendStatus(200);
         } catch (e: unknown) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
+
+  getRole() {
+    return [
+      validateRequestParams(z.object({ eventId: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { eventId } = req.params as { eventId: string };
+          const currentUserId = req.session.currentUserId as string;
+
+          const host = await this.ctx.hosts.findFirst({
+            where: {
+              AND: [
+                { userId: currentUserId },
+                {
+                  events: {
+                    some: { id: eventId },
+                  },
+                },
+              ],
+            },
+          });
+
+          if (host) {
+            return res.status(200).json({
+              role: 'host',
+              data: host,
+            });
+          }
+
+          const guest = await this.ctx.guests.findFirst({
+            where: {
+              AND: [
+                { userId: currentUserId },
+                {
+                  events: {
+                    some: { eventId },
+                  },
+                },
+              ],
+            },
+          });
+
+          if (guest) {
+            return res.status(200).json({
+              role: 'guest',
+              data: guest,
+            });
+          }
+
+          const vendor = await this.ctx.vendors.findFirst({
+            where: {
+              AND: [
+                { userId: currentUserId },
+                {
+                  events: {
+                    some: { eventId },
+                  },
+                },
+              ],
+            },
+          });
+
+          if (vendor) {
+            return res.status(200).json({
+              role: 'vendor',
+              data: vendor,
+            });
+          }
+        } catch (e) {
           console.error(e);
           next(new InternalServerError());
         }

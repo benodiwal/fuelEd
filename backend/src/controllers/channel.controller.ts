@@ -19,6 +19,16 @@ class ChannelController extends AbstractController {
             },
           });
 
+          const guests = await this.ctx.guests.findMany({
+            where: {
+              events: {
+                some: {
+                  eventId,
+                }
+              }
+            }
+          });
+
           if (!event) {
             return res.status(400).json({ error: 'Event not found' });
           }
@@ -35,7 +45,7 @@ class ChannelController extends AbstractController {
                 },
               },
             },
-          });
+          });          
 
           const channelParticipantHost = await this.ctx.channelParticipants.create({
             data: {
@@ -52,6 +62,25 @@ class ChannelController extends AbstractController {
               }
             },
           });
+
+          for (const guest of guests) {
+            const channelParticipantGuest = await this.ctx.channelParticipants.create({
+              data: {
+                role: Role.GUEST,
+                channel: {
+                  connect: {
+                    id: channel.id,
+                  },
+                },
+                guest: {
+                  connect: {
+                    id: guest.id,
+                  }
+                }
+              },
+            }); 
+            console.log(channelParticipantGuest);
+          }
 
           console.log(channelParticipantHost);
           res.sendStatus(200);

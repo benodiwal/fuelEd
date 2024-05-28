@@ -58,8 +58,8 @@ class ChannelController extends AbstractController {
               host: {
                 connect: {
                   id: hostId,
-                }
-              }
+                },
+              },
             },
           });
 
@@ -257,11 +257,7 @@ class ChannelController extends AbstractController {
 
           const sender = await this.ctx.channelParticipants.findFirst({
             where: {
-              OR: [
-                { hostId: roleId},
-                { guestId: roleId },
-                { vendorId: roleId }
-              ]
+              OR: [{ hostId: roleId }, { guestId: roleId }, { vendorId: roleId }],
             },
           });
 

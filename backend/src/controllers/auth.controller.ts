@@ -6,7 +6,6 @@ import { z } from 'zod';
 import axios from 'axios';
 
 class AuthController extends AbstractController {
-  
   getAuthGoogleCallback() {
     return [
       validateRequestBody(z.object({ token: z.string().min(10) })),

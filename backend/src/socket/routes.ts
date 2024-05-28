@@ -20,8 +20,6 @@ class SocketRoutes {
     this.#USERS_IN_CHANNEL = 'usersInChannel-';
   }
 
-  // user-socketId -> ChanelParticpant{}
-
   getRoutes() {
     return [
       {

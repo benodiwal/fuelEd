@@ -1,3 +1,4 @@
+import { ChannelMessage, ChannelParticipant } from '@prisma/client';
 import Database from 'apps/database';
 import Redis from 'libs/redis.lib';
 import { Socket } from 'socket.io';
@@ -29,23 +30,17 @@ class SocketRoutes {
           const user = await this.#database.client.channelParticipant.findFirst({
             where: {
               OR: [
-                {
-                  hostId: roleId,
-                },
-                {
-                  vendorId: roleId,
-                },
-                {
-                  guestId: roleId,
-                },
-              ],
+                { hostId: roleId },
+                { vendorId: roleId },
+                { guestId: roleId },
+              ]
             },
-          });
+          }) as ChannelParticipant;
 
           await Promise.all([
             this.#redisService.redis?.set(`${this.#SOCKET_ID_IN_CHANNEL}${socket.id}`, channelId),
             this.#redisService.redis?.set(`${this.#USER}${socket.id}`, JSON.stringify(user)),
-            this.#redisService.redis?.hSet(`${this.#USERS_IN_CHANNEL}${socket.id}`, roleId, socket.id),
+            this.#redisService.redis?.hSet(`${this.#USERS_IN_CHANNEL}${socket.id}`, user.id, socket.id),
           ]);
 
           socket.join(channelId);
@@ -53,15 +48,17 @@ class SocketRoutes {
       },
       {
         name: 'channelSendMessage',
-        controller: async (socket: Socket, { msg }: { msg: string }) => {
+        controller: async (socket: Socket, { msg }: { msg: ChannelMessage }) => {
           const [channelId, user] = await Promise.all([
             this.#redisService.redis?.get(`${this.#SOCKET_ID_IN_CHANNEL}${socket.id}`),
             this.#redisService.redis?.get(`${this.#USER}${socket.id}`),
-          ]);
+          ]) as Array<string>;
 
-          // crete channelMessage
+          msg.senderId = JSON.parse(user).id;
 
-          console.log(channelId, user, msg);
+          if (channelId) {
+            socket.to(channelId).emit('roomNewMessage', msg);
+          }
         },
       },
       {

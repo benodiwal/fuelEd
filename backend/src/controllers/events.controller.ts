@@ -112,6 +112,7 @@ class EventsController extends AbstractController {
               guests: true,
               vendors: true,
               rsvps: true,
+              channels: true,
               eventPosts: true,
               eventPolls: {
                 include: {

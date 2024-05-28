@@ -12,10 +12,12 @@ class Socket {
   constructor(database: Database, server: HttpServer) {
     this.#server = server;
     this.#database = database;
+
     this.#io = new Server(this.#server, {
       cors: {
         origin: '*',
         methods: ['GET', 'POST'],
+        credentials: true,
       },
     });
     this.#socketRoutes = new SocketRoutes(this.#database);
@@ -23,7 +25,9 @@ class Socket {
 
   setupRoutes() {
     return async () => {
+      console.log('Setting up socket routes Setting up socket routes Setting up socket routes');
       this.#io.on('connection', (socket) => {
+        console.log('Socket connected:', socket.id);
         this.#socketRoutes.getRoutes().map((route) => socket.on(route.name, (data) => route.controller(socket, data)));
       });
     };

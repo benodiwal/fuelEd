@@ -11,7 +11,9 @@ server.start();
 
 const httpServer = createServer({}, server.engine);
 const socket = new Socket(database, httpServer);
-socket.setupRoutes();
+
+const startSocket = socket.setupRoutes();
+startSocket();
 
 httpServer.listen(parseInt(getEnvVar('PORT')), () => {
   console.log(`Server listening at ${getEnvVar('PORT')}`);

@@ -20,12 +20,13 @@ class SocketRoutes {
     this.#USERS_IN_CHANNEL = 'usersInChannel-';
   }
 
+  // user-socketId -> ChanelParticpant{}
+
   getRoutes() {
     return [
       {
         name: 'joinChannel',
         controller: async (socket: Socket, { channelId, roleId }: { channelId: string; roleId: string }) => {
-   
           const user = await this.#database.client.channelParticipant.findFirst({
             where: {
               OR: [
@@ -58,7 +59,6 @@ class SocketRoutes {
           if (channelId) {
             socket.to(channelId).emit('roomNewMessage', msg);
           }
-
         },
       },
       {

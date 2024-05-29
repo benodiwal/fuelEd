@@ -1,7 +1,7 @@
-import { ChannelMessage, ChannelParticipant } from '@prisma/client';
+import { ChannelParticipant } from '@prisma/client';
 import Database from 'apps/database';
 import Redis from 'libs/redis.lib';
-import { Socket } from 'socket.io';
+import { Socket, Server } from 'socket.io';
 
 class SocketRoutes {
   #redisService: Redis;
@@ -9,11 +9,13 @@ class SocketRoutes {
   #USER: string;
   #USERS_IN_CHANNEL: string;
   #database: Database;
+  #io: Server;
 
-  constructor(database: Database) {
+  constructor(database: Database, io: Server) {
     this.#redisService = new Redis();
     this.#redisService.createConnection();
     this.#database = database;
+    this.#io = io;
 
     this.#SOCKET_ID_IN_CHANNEL = 'socketIdInChannel-';
     this.#USER = 'user-';
@@ -25,18 +27,13 @@ class SocketRoutes {
       {
         name: 'joinChannel',
         controller: async (socket: Socket, { channelId, roleId }: { channelId: string; roleId: string }) => {
+          console.log('Join Channel Hit');
 
-          console.log("Join Channel Hit");
-
-          const user = await this.#database.client.channelParticipant.findFirst({
+          const user = (await this.#database.client.channelParticipant.findFirst({
             where: {
-              OR: [
-                { hostId: roleId },
-                { vendorId: roleId },
-                { guestId: roleId },
-              ]
+              OR: [{ hostId: roleId }, { vendorId: roleId }, { guestId: roleId }],
             },
-          }) as ChannelParticipant;
+          })) as ChannelParticipant;
 
           await Promise.all([
             this.#redisService.redis?.set(`${this.#SOCKET_ID_IN_CHANNEL}${socket.id}`, channelId),
@@ -49,21 +46,22 @@ class SocketRoutes {
       },
       {
         name: 'channelSendMessage',
-        controller: async (socket: Socket, { msg }: { msg: ChannelMessage }) => {
-
-          console.log("Channel Send Message Hit");
+        controller: async (socket: Socket, { msg }: { msg: string }) => {
+          console.log('Channel Send Message Hit');
+          console.log(msg);
 
           const channelId = await this.#redisService.redis?.get(`${this.#SOCKET_ID_IN_CHANNEL}${socket.id}`);
           if (channelId) {
-            socket.to(channelId).emit('channelNewMessage', msg);
+            console.log("Send Message Channel Id: ", channelId);
+            this.#io.to(channelId).emit('channelNewMessage', msg);
+            console.log("Message Emitted");
           }
         },
       },
       {
         name: 'leaveChannel',
         controller: async (socket: Socket, channelId: string) => {
-
-          console.log("Leave Channel Hit");
+          console.log('Leave Channel Hit');
 
           this.#redisService.redis?.del(`${this.#SOCKET_ID_IN_CHANNEL}${socket.id}`);
           socket.leave(channelId);

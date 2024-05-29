@@ -13,13 +13,13 @@ class ChannelController extends AbstractController {
         try {
           const { name, channelType } = req.body as unknown as { name: string; channelType: ChannelType };
           const eventId = req.eventId as string;
-          console.log("EventId: ", eventId);
+          console.log('EventId: ', eventId);
           const event = await this.ctx.events.findUnqiue({
             where: {
               id: eventId,
             },
           });
-          
+
           if (!event) {
             return res.status(400).json({ error: 'Event not found' });
           }
@@ -29,10 +29,10 @@ class ChannelController extends AbstractController {
               events: {
                 some: {
                   eventId,
-                }
-              }
-            }
-          });          
+                },
+              },
+            },
+          });
 
           const hostId = event.hostId;
 
@@ -46,7 +46,7 @@ class ChannelController extends AbstractController {
                 },
               },
             },
-          });          
+          });
 
           const channelParticipantHost = await this.ctx.channelParticipants.create({
             data: {
@@ -76,10 +76,10 @@ class ChannelController extends AbstractController {
                 guest: {
                   connect: {
                     id: guest.id,
-                  }
-                }
+                  },
+                },
               },
-            }); 
+            });
             console.log(channelParticipantGuest);
           }
 

@@ -20,7 +20,8 @@ class Socket {
         credentials: true,
       },
     });
-    this.#socketRoutes = new SocketRoutes(this.#database);
+    
+    this.#socketRoutes = new SocketRoutes(this.#database, this.#io);
   }
 
   setupRoutes() {

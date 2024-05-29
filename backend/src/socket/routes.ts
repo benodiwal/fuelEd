@@ -52,9 +52,9 @@ class SocketRoutes {
 
           const channelId = await this.#redisService.redis?.get(`${this.#SOCKET_ID_IN_CHANNEL}${socket.id}`);
           if (channelId) {
-            console.log("Send Message Channel Id: ", channelId);
+            console.log('Send Message Channel Id: ', channelId);
             this.#io.to(channelId).emit('channelNewMessage', msg);
-            console.log("Message Emitted");
+            console.log('Message Emitted');
           }
         },
       },

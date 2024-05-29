@@ -14,6 +14,7 @@ import { IChannelMessageModel } from './models/channelMessage.model';
 import { IEventFloorPlanModel } from './models/eventFloorPlan.model';
 import { IRSVPModel } from './models/rsvp.model';
 import { IEventThemeModel } from './models/eventTheme.model';
+import { IGuestPostModel } from './models/guestPost.model';
 
 export type txClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
 
@@ -38,4 +39,5 @@ export interface IContext {
   eventFloorPlans: IEventFloorPlanModel;
   rsvp: IRSVPModel;
   eventTheme: IEventThemeModel;
+  guestPost: IGuestPostModel;
 }

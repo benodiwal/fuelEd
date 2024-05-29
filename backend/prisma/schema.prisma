@@ -22,6 +22,7 @@ model User{
   guests Guest[]
   hosts Host[]
 
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -49,14 +50,14 @@ model Guest {
   avatar String @default("")
   profileCompleted Boolean @default(false)
 
-
   email String
-  phone String?
-  
+  phone String? 
   user User @relation(fields: [userId], references: [id])
   userId String 
 
+
   rsvps RSVP?
+  guestPosts GuestPost[]
 
   channelParticipants ChannelParticipant[]
   events EventGuest[]
@@ -79,8 +80,8 @@ model EventPost {
   heading String
   description String
   sendEmail Boolean
-  eventId String
 
+  eventId String
   event Event @relation(fields: [eventId], references: [id])
   
   createdAt DateTime @default(now())
@@ -169,6 +170,23 @@ model EventTheme {
   eventId String @unique  
 }
 
+
+model GuestPost {
+  id String @id @default(cuid())
+  text String
+  image String @default("")
+  
+  guestId String
+  guest Guest @relation(fields: [guestId], references: [id])  
+
+  event Event @relation(fields: [eventId], references: [id])
+  eventId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
 model Event {
   id    String  @id @default(cuid())
   title  String
@@ -177,6 +195,8 @@ model Event {
   endDate    String
   startTime  String
 
+
+  guestPosts GuestPost[]
   rsvps RSVP[]
   invites Invite[]
   guests EventGuest[]

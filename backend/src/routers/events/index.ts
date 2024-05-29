@@ -24,6 +24,9 @@ export default class EventsRouter extends AbstractRouter {
     this.registerPOST('/:id/invite/:role', eventsController.sendInvite());
     this.registerPOST('/:id/invite/:inviteId/accept/:role', eventsController.acceptInvite());
 
+    //
+    this.registerPOST('/:id/guest-post', eventsController.createGuestPost());
+
     this.registerPOST('/:id/rsvp/accept', eventsController.acceptRSVP());
     this.registerPOST('/:id/rsvp/decline', eventsController.declineRSVP());
 

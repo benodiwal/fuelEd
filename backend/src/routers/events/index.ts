@@ -20,7 +20,7 @@ export default class EventsRouter extends AbstractRouter {
     this.registerGET('/:id/posts/:postId', eventsController.getPostById());
 
     this.registerGET('/:id/role', eventsController.getRole());
-
+    
     this.registerPOST('/:id/invite/:role', eventsController.sendInvite());
     this.registerPOST('/:id/invite/:inviteId/accept/:role', eventsController.acceptInvite());
 
@@ -30,8 +30,10 @@ export default class EventsRouter extends AbstractRouter {
     this.registerPOST('/:id/polls', eventsController.createPoll());
     this.registerGET('/:id/polls/:pollId', eventsController.getPollById());
     this.registerPOST('/:id/polls/:pollId/vote', eventsController.updatePollById());
-
     this.registerPOST('/:id/venue', eventsController.createVenuePlan());
+
+    this.registerGET('/:id/theme', eventsController.getEventTheme());
+    this.registerPOST('/:id/theme', eventsController.updateEventTheme());
 
     console.log('Registering ChannelRouter under /:id/channels');
     const channelRouter = new ChannelRouter(this.ctx, this.engine, '');

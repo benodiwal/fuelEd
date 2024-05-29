@@ -27,6 +27,8 @@ import { IEventFloorPlanModel } from 'interfaces/models/eventFloorPlan.model';
 import EventFloorPlanModel from './eventFloorPlan';
 import { IRSVPModel } from 'interfaces/models/rsvp.model';
 import RSVPModel from './rsvp.mode';
+import { IEventThemeModel } from 'interfaces/models/eventTheme.model';
+import EventThemeModel from './eventTheme.mode';
 
 export default class Context implements IContext {
   db: IDatabase;
@@ -44,6 +46,7 @@ export default class Context implements IContext {
   channelParticipants: IChannelParticipantModel;
   channelMessages: IChannelMessageModel;
   rsvp: IRSVPModel;
+  eventTheme: IEventThemeModel;
 
   constructor(database: IDatabase) {
     this.db = database;
@@ -61,5 +64,6 @@ export default class Context implements IContext {
     this.channelMessages = new ChannelMessageModel(database);
     this.eventFloorPlans = new EventFloorPlanModel(database);
     this.rsvp = new RSVPModel(database);
+    this.eventTheme = new EventThemeModel(database);
   }
 }

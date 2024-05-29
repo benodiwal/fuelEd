@@ -158,11 +158,21 @@ model RSVP{
   updatedAt DateTime @updatedAt
 }
 
+
+model EventTheme {
+  id    String  @id @default(cuid())
+  primaryColor String @default("#dc0e63")
+  textColor String @default("#ffffff")
+  coverImage String @default("")
+
+  event Event @relation(fields: [eventId], references: [id])
+  eventId String @unique  
+}
+
 model Event {
   id    String  @id @default(cuid())
   title  String
   description String
-
   startDate  String
   endDate    String
   startTime  String
@@ -177,6 +187,7 @@ model Event {
   eventHostMessage EventHostMessage?
   channels Channel[]
   eventFloorPlan EventFloorPlan[]
+  eventTheme EventTheme?
 
   host  Host    @relation(fields: [hostId], references: [id])
   hostId String @unique

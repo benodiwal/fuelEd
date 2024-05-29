@@ -86,6 +86,17 @@ class EventsController extends AbstractController {
             },
           });
 
+          // Check this
+          await this.ctx.eventTheme.create({
+            data: {
+              event: {
+                connect: {
+                  id: event.id,
+                },
+              },
+            },
+          });
+
           res.status(201).json({
             data: event,
           });
@@ -114,6 +125,7 @@ class EventsController extends AbstractController {
               rsvps: true,
               channels: true,
               eventPosts: true,
+              eventFloorPlan: true,
               eventPolls: {
                 include: {
                   options: true,
@@ -410,7 +422,7 @@ class EventsController extends AbstractController {
             await this.ctx.eventPollOptions.createByPollId(eventPoll.id, option);
           }
 
-          res.sendStatus(200);
+          res.status(200).json({ data: eventPoll });
         } catch (e) {
           console.error(e);
           next(new InternalServerError());
@@ -494,7 +506,7 @@ class EventsController extends AbstractController {
 
           const { title, json } = req.body as unknown as { title: string; json: string };
 
-          await this.ctx.eventFloorPlans.create({
+          const venue = await this.ctx.eventFloorPlans.create({
             data: {
               title,
               floorPlanJson: json,
@@ -506,7 +518,7 @@ class EventsController extends AbstractController {
             },
           });
 
-          res.status(200).send({ data: eventId });
+          res.status(200).send({ data: venue });
         } catch (error) {
           console.error(error);
           next(new InternalServerError());
@@ -583,6 +595,71 @@ class EventsController extends AbstractController {
           });
 
           res.status(200).send({ data: rsvp });
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
+
+  getEventTheme() {
+    return [
+      validateRequestParams(z.object({ id: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const userId = req.session.currentUserId;
+          const { id: eventId } = req.params as unknown as { id: string };
+
+          console.log(eventId, userId);
+
+          const theme = await this.ctx.eventTheme.findFirst({
+            where: {
+              eventId,
+            },
+          });
+
+          res.status(200).json({ data: theme });
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
+
+  updateEventTheme() {
+    return [
+      validateRequestParams(z.object({ id: z.string() })),
+      validateRequestBody(z.object({ primaryColor: z.string(), textColor: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { id: eventId } = req.params as unknown as { id: string };
+          const { primaryColor, textColor } = req.body as unknown as { primaryColor: string; textColor: string };
+
+          // also need to check whether the user is the host of the event
+          const theme = await this.ctx.eventTheme.upsert({
+            where: {
+              eventId,
+            },
+            create: {
+              primaryColor,
+              textColor,
+              event: {
+                connect: {
+                  id: eventId,
+                },
+              },
+            },
+            update: {
+              primaryColor,
+              textColor,
+            },
+          });
+
+          res.status(201).json({
+            data: theme,
+          });
         } catch (e) {
           console.error(e);
           next(new InternalServerError());

@@ -28,7 +28,7 @@ import EventFloorPlanModel from './eventFloorPlan';
 import { IRSVPModel } from 'interfaces/models/rsvp.model';
 import RSVPModel from './rsvp.mode';
 import { IEventThemeModel } from 'interfaces/models/eventTheme.model';
-import EventThemeModel from './eventTheme.mode';
+import EventThemeModel from './eventTheme.model';
 import { IGuestPostModel } from 'interfaces/models/guestPost.model';
 import GuestPostModel from './guestPost.model';
 

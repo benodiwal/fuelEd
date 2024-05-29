@@ -6,7 +6,8 @@ import { InternalServerError } from 'errors/internal-server-error';
 import emailService from 'libs/email.lib';
 import { z } from 'zod';
 import { Role } from 'interfaces/libs';
-import { InviteStatus, RSVPStatus } from '@prisma/client';
+import { Event, InviteStatus, RSVPStatus } from '@prisma/client';
+import { parse } from 'path';
 
 class EventsController extends AbstractController {
   getAllEventsByUserId() {
@@ -15,11 +16,27 @@ class EventsController extends AbstractController {
         try {
           const userId = req.session.currentUserId as string;
 
-          // const guest = await this.ctx.guests.findMany({
-          //   where: {
-          //     userId,
-          //   },
-          // });
+          const guests = await this.ctx.guests.findMany({
+            where: {
+              userId,
+            },
+          });
+
+          let allEvents: Event[] = [];
+
+          for (const guest of guests) {
+            const guestEvents = await this.ctx.events.findMany({
+              where: {
+                guests: {
+                  some: {
+                    guestId: guest.id,
+                  },
+                },
+              },
+            });
+
+            allEvents = [...guestEvents];
+          }
 
           const hostedEvents = await this.ctx.events.findMany({
             where: {
@@ -29,17 +46,27 @@ class EventsController extends AbstractController {
             },
           });
 
-          // const guestEvents = await this.ctx.events.findMany({
-          //   where: {
-          //     guests: {
-          //       some: {
-          //         guestId: guest?.id,
-          //       },
-          //     },
-          //   },
-          // });
+          const vendors = await this.ctx.vendors.findMany({
+            where: {
+              userId,
+            },
+          });
 
-          const allEvents = [...hostedEvents];
+          for (const vendor of vendors) {
+            const vendorEvents = await this.ctx.events.findMany({
+              where: {
+                guests: {
+                  some: {
+                    guestId: vendor.id,
+                  },
+                },
+              },
+            });
+
+            allEvents = [...allEvents, ...vendorEvents];
+          }
+
+          allEvents = [...allEvents, ...hostedEvents];
 
           res.status(200).send({ data: allEvents });
         } catch (e: unknown) {
@@ -210,7 +237,6 @@ class EventsController extends AbstractController {
               },
             });
 
-            // creating a pending state RSVP for the guest and the event....
             await this.ctx.rsvp.create({
               data: {
                 event: {
@@ -530,10 +556,12 @@ class EventsController extends AbstractController {
   acceptRSVP() {
     return [
       validateRequestParams(z.object({ id: z.string() })),
+      validateRequestBody(z.object({ plusOnes: z.string() })),
       async (req: Request, res: Response, next: NextFunction) => {
         try {
           const userId = req.session.currentUserId as string;
           const { id: eventId } = req.params as unknown as { id: string };
+          const { plusOnes } = req.body as unknown as { plusOnes: string };
 
           const guest = await this.ctx.guests.findFirst({
             where: {
@@ -553,6 +581,15 @@ class EventsController extends AbstractController {
             },
             data: {
               status: RSVPStatus.CONFIRMED,
+            },
+          });
+
+          await this.ctx.guests.update({
+            where: {
+              id: guest?.id,
+            },
+            data: {
+              plusOnes: parseInt(plusOnes, 10),
             },
           });
 

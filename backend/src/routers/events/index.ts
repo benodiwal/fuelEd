@@ -3,6 +3,7 @@ import AbstractRouter from '..';
 import EventsController from 'controllers/events.controller';
 import ChannelRouter from 'routers/channels';
 import { forwardEventId } from 'middlewares/forwardEventId.middleware';
+import GuestRouter from 'routers/guest';
 
 export default class EventsRouter extends AbstractRouter {
   registerMiddlewares() {
@@ -20,11 +21,9 @@ export default class EventsRouter extends AbstractRouter {
     this.registerGET('/:id/posts/:postId', eventsController.getPostById());
 
     this.registerGET('/:id/role', eventsController.getRole());
-
     this.registerPOST('/:id/invite/:role', eventsController.sendInvite());
     this.registerPOST('/:id/invite/:inviteId/accept/:role', eventsController.acceptInvite());
 
-    //
     this.registerPOST('/:id/guest-post', eventsController.createGuestPost());
 
     this.registerPOST('/:id/rsvp/accept', eventsController.acceptRSVP());
@@ -41,5 +40,9 @@ export default class EventsRouter extends AbstractRouter {
     console.log('Registering ChannelRouter under /:id/channels');
     const channelRouter = new ChannelRouter(this.ctx, this.engine, '');
     this.extendRouter('/:id/channels/', channelRouter, forwardEventId());
+
+    console.log('Registering GuestRouter under /:id/guests');
+    const guestRouter = new GuestRouter(this.ctx, this.engine, '');
+    this.extendRouter('/:id/guests/', guestRouter, forwardEventId());
   }
 }

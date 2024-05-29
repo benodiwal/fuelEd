@@ -20,13 +20,14 @@ class SocketRoutes {
     this.#USERS_IN_CHANNEL = 'usersInChannel-';
   }
 
-  // user-socketId -> ChanelParticpant{}
-
   getRoutes() {
     return [
       {
         name: 'joinChannel',
         controller: async (socket: Socket, { channelId, roleId }: { channelId: string; roleId: string }) => {
+
+          console.log("Join Channel Hit");
+
           const user = await this.#database.client.channelParticipant.findFirst({
             where: {
               OR: [
@@ -49,21 +50,21 @@ class SocketRoutes {
       {
         name: 'channelSendMessage',
         controller: async (socket: Socket, { msg }: { msg: ChannelMessage }) => {
-          const [channelId, user] = await Promise.all([
-            this.#redisService.redis?.get(`${this.#SOCKET_ID_IN_CHANNEL}${socket.id}`),
-            this.#redisService.redis?.get(`${this.#USER}${socket.id}`),
-          ]) as Array<string>;
 
-          msg.senderId = JSON.parse(user).id;
+          console.log("Channel Send Message Hit");
 
+          const channelId = await this.#redisService.redis?.get(`${this.#SOCKET_ID_IN_CHANNEL}${socket.id}`);
           if (channelId) {
-            socket.to(channelId).emit('roomNewMessage', msg);
+            socket.to(channelId).emit('channelNewMessage', msg);
           }
         },
       },
       {
         name: 'leaveChannel',
         controller: async (socket: Socket, channelId: string) => {
+
+          console.log("Leave Channel Hit");
+
           this.#redisService.redis?.del(`${this.#SOCKET_ID_IN_CHANNEL}${socket.id}`);
           socket.leave(channelId);
         },

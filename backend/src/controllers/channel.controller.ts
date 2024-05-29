@@ -13,11 +13,16 @@ class ChannelController extends AbstractController {
         try {
           const { name, channelType } = req.body as unknown as { name: string; channelType: ChannelType };
           const eventId = req.eventId as string;
+          console.log("EventId: ", eventId);
           const event = await this.ctx.events.findUnqiue({
             where: {
               id: eventId,
             },
           });
+          
+          if (!event) {
+            return res.status(400).json({ error: 'Event not found' });
+          }
 
           const guests = await this.ctx.guests.findMany({
             where: {
@@ -27,11 +32,7 @@ class ChannelController extends AbstractController {
                 }
               }
             }
-          });
-
-          if (!event) {
-            return res.status(400).json({ error: 'Event not found' });
-          }
+          });          
 
           const hostId = event.hostId;
 
@@ -249,11 +250,11 @@ class ChannelController extends AbstractController {
   createMessage() {
     return [
       validateRequestParams(z.object({ channelId: z.string() })),
-      validateRequestBody(z.object({ message: z.string(), timestamp: z.date(), roleId: z.string() })),
+      validateRequestBody(z.object({ message: z.string(), roleId: z.string() })),
       async (req: Request, res: Response, next: NextFunction) => {
         try {
           const { channelId } = req.params as unknown as { channelId: string };
-          const { message, timestamp, roleId } = req.body as unknown as { message: string; timestamp: Date; roleId: string };
+          const { message, roleId } = req.body as unknown as { message: string; roleId: string };
 
           const sender = await this.ctx.channelParticipants.findFirst({
             where: {
@@ -268,7 +269,7 @@ class ChannelController extends AbstractController {
           const channelMessage = await this.ctx.channelMessages.create({
             data: {
               message,
-              timestamp,
+              timestamp: new Date(),
               senderId: sender.id,
               channelId,
             },

@@ -265,10 +265,10 @@ class EventsController extends AbstractController {
 
   getRole() {
     return [
-      validateRequestParams(z.object({ eventId: z.string() })),
+      validateRequestParams(z.object({ id: z.string() })),
       async (req: Request, res: Response, next: NextFunction) => {
         try {
-          const { eventId } = req.params as { eventId: string };
+          const { id: eventId } = req.params as { id: string };
           const currentUserId = req.session.currentUserId as string;
 
           const host = await this.ctx.hosts.findFirst({
@@ -285,6 +285,7 @@ class EventsController extends AbstractController {
           });
 
           if (host) {
+            console.log(host);
             return res.status(200).json({
               role: 'host',
               data: host,
@@ -305,6 +306,7 @@ class EventsController extends AbstractController {
           });
 
           if (guest) {
+            console.log(guest);
             return res.status(200).json({
               role: 'guest',
               data: guest,
@@ -325,6 +327,7 @@ class EventsController extends AbstractController {
           });
 
           if (vendor) {
+            console.log(vendor);
             return res.status(200).json({
               role: 'vendor',
               data: vendor,

@@ -273,6 +273,7 @@ class EventsController extends AbstractController {
           });
 
           if (host) {
+            console.log(host);
             return res.status(200).json({
               role: 'host',
               data: host,
@@ -293,6 +294,7 @@ class EventsController extends AbstractController {
           });
 
           if (guest) {
+            console.log(guest);
             return res.status(200).json({
               role: 'guest',
               data: guest,
@@ -313,6 +315,7 @@ class EventsController extends AbstractController {
           });
 
           if (vendor) {
+            console.log(vendor);
             return res.status(200).json({
               role: 'vendor',
               data: vendor,

@@ -332,9 +332,19 @@ class EventsController extends AbstractController {
                 },
               },
             });
+            
+            const createDM = this.createVendorDM(vendor?.name as string, vendor?.id as string, eventId);
+            createDM();
 
-          const createDM = this.createVendorDM(vendor?.name as string, vendor?.id as string, eventId);
-          createDM();
+            await this.ctx.contracts.create({
+              data: {
+                vendor: {
+                  connect: {
+                    id: vendor?.id,
+                  }
+                },
+              }
+            });
           
         }
 

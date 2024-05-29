@@ -29,6 +29,8 @@ import { IRSVPModel } from 'interfaces/models/rsvp.model';
 import RSVPModel from './rsvp.mode';
 import { IEventThemeModel } from 'interfaces/models/eventTheme.model';
 import EventThemeModel from './eventTheme.mode';
+import { IGuestPostModel } from 'interfaces/models/guestPost.model';
+import GuestPostModel from './guestPost.model';
 
 export default class Context implements IContext {
   db: IDatabase;
@@ -47,6 +49,7 @@ export default class Context implements IContext {
   channelMessages: IChannelMessageModel;
   rsvp: IRSVPModel;
   eventTheme: IEventThemeModel;
+  guestPost: IGuestPostModel;
 
   constructor(database: IDatabase) {
     this.db = database;
@@ -65,5 +68,6 @@ export default class Context implements IContext {
     this.eventFloorPlans = new EventFloorPlanModel(database);
     this.rsvp = new RSVPModel(database);
     this.eventTheme = new EventThemeModel(database);
+    this.guestPost = new GuestPostModel(database);
   }
 }

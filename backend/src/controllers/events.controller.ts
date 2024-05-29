@@ -667,6 +667,59 @@ class EventsController extends AbstractController {
       },
     ];
   }
+
+  createGuestPost() {
+    return [
+      validateRequestParams(z.object({ id: z.string() })),
+      validateRequestBody(z.object({ text: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const userId = req.session.currentUserId as string;
+          const { id: eventId } = req.params as unknown as { id: string };
+
+          const { text } = req.body as unknown as { text: string };
+
+          const guest = await this.ctx.guests.findFirst({
+            where: {
+              userId,
+              events: {
+                some: {
+                  eventId,
+                },
+              },
+            },
+          });
+
+          if (!guest) {
+            return res.status(404).json({ data: 'Guest not found' });
+          }
+
+          const guestPost = await this.ctx.guestPost.create({
+            data: {
+              text,
+              guest: {
+                connect: {
+                  id: guest.id,
+                },
+              },
+              event: {
+                connect: {
+                  id: eventId,
+                },
+              },
+            },
+          });
+
+          res.status(201).json({
+            data: guestPost,
+          });
+        } catch (e) {
+          console.log(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
 }
 
 export default EventsController;

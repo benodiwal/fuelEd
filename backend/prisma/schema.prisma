@@ -142,8 +142,7 @@ model Contract {
   id    String  @id @default(cuid())
   vendorId String @unique
   contractData String?
-  signedByHost Boolean @default(true)
-  signedByVendor Boolean @default(false)
+  status ContractStatus @default(SIGNED_BY_HOST)
   vendor Vendor @relation(fields: [vendorId], references: [id])
 }
 
@@ -346,4 +345,9 @@ enum Role {
   HOST
   GUEST
   VENDOR
+}
+
+enum ContractStatus {
+  SIGNED_BY_HOST
+  SIGNED_BY_BOTH
 }

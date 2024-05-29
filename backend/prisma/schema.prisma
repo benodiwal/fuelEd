@@ -49,6 +49,8 @@ model Guest {
   nickName String?
   avatar String @default("")
   profileCompleted Boolean @default(false)
+  plusOnes Int @default(0)
+
 
   email String
   phone String? 

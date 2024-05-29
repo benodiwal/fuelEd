@@ -141,7 +141,7 @@ model EventVendor {
 model Contract {
   id    String  @id @default(cuid())
   vendorId String @unique
-  contractData String
+  contractData String?
   signedByHost Boolean @default(true)
   signedByVendor Boolean @default(false)
   vendor Vendor @relation(fields: [vendorId], references: [id])

@@ -31,6 +31,8 @@ import { IEventThemeModel } from 'interfaces/models/eventTheme.model';
 import EventThemeModel from './eventTheme.model';
 import { IGuestPostModel } from 'interfaces/models/guestPost.model';
 import GuestPostModel from './guestPost.model';
+import { IContractModel } from 'interfaces/models/contract.model';
+import ContractModel from './contract.model';
 
 export default class Context implements IContext {
   db: IDatabase;
@@ -50,6 +52,7 @@ export default class Context implements IContext {
   rsvp: IRSVPModel;
   eventTheme: IEventThemeModel;
   guestPost: IGuestPostModel;
+  contracts: IContractModel;
 
   constructor(database: IDatabase) {
     this.db = database;
@@ -69,5 +72,6 @@ export default class Context implements IContext {
     this.rsvp = new RSVPModel(database);
     this.eventTheme = new EventThemeModel(database);
     this.guestPost = new GuestPostModel(database);
+    this.contracts = new ContractModel(database);
   }
 }

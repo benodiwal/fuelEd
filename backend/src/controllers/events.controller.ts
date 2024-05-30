@@ -4,9 +4,11 @@ import { NextFunction, Request, Response } from 'express';
 import { createEventSchema, createPollSchema, createPostSchema, updatePollOptionSchema } from 'zod/schema';
 import { InternalServerError } from 'errors/internal-server-error';
 import emailService from 'libs/email.lib';
+import { Role as RoleForBody } from 'interfaces/libs';
 import { z } from 'zod';
-import { Role } from 'interfaces/libs';
-import { Event, InviteStatus, RSVPStatus } from '@prisma/client';
+
+// import { Role } from 'interfaces/libs';
+import { ChannelType, Event, InviteStatus, Role, RSVPStatus } from '@prisma/client';
 
 class EventsController extends AbstractController {
   getAllEventsByUserId() {
@@ -195,7 +197,7 @@ class EventsController extends AbstractController {
       async (req: Request, res: Response, next: NextFunction) => {
         try {
           const { name, email } = req.body as unknown as { name: string; email: string };
-          const { id: eventId, role } = req.params as unknown as { id: string; role: Role };
+          const { id: eventId, role } = req.params as unknown as { id: string; role: RoleForBody };
 
           const invite = await this.ctx.invites.create({
             data: {
@@ -227,12 +229,76 @@ class EventsController extends AbstractController {
     ];
   }
 
+  private createVendorDM(name: string, roleId: string, eventId: string) {
+    return async () => {
+      try {
+        const event = await this.ctx.events.findUnqiue({
+          where: {
+            id: eventId,
+          }
+        }) as Event;
+
+        const hostId = event.hostId;
+        const channel = await this.ctx.channels.create({
+          data: {
+            name,
+            channelType: ChannelType.DIRECT,
+            event: {
+              connect: {
+                id: eventId,
+              }
+            }
+          }
+        });
+
+        const channelParticipantHost = await this.ctx.channelParticipants.create({
+          data: {
+            role: Role.HOST,
+            channel: {
+              connect: {
+                id: channel.id
+              }
+            },
+            host: {
+              connect: {
+                id: hostId,
+              }
+            }
+          }
+        });
+
+        console.log(channelParticipantHost);
+
+        const channelParticipantVendor = await this.ctx.channelParticipants.create({
+          data: {
+            role: Role.VENDOR,
+            channel: {
+              connect: {
+                id: channel.id,
+              }
+            },
+            host: {
+              connect: {
+                id: roleId,
+              }
+            }
+          }
+        });
+
+        console.log(channelParticipantVendor);
+
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }
+
   acceptInvite() {
     return [
       validateRequestParams(z.object({ id: z.string(), inviteId: z.string(), role: z.enum(['guest', 'vendor']) })),
       async (req: Request, res: Response, next: NextFunction) => {
         try {
-          const { id: eventId, inviteId, role } = req.params as unknown as { id: string; inviteId: string; role: Role };
+          const { id: eventId, inviteId, role } = req.params as unknown as { id: string; inviteId: string; role: RoleForBody };
           const userId = req.session.currentUserId as string;
 
           if (role == 'guest') {
@@ -285,7 +351,21 @@ class EventsController extends AbstractController {
                 },
               },
             });
-          }
+            
+            const createDM = this.createVendorDM(vendor?.name as string, vendor?.id as string, eventId);
+            createDM();
+
+            await this.ctx.contracts.create({
+              data: {
+                vendor: {
+                  connect: {
+                    id: vendor?.id,
+                  }
+                },
+              }
+            });
+          
+        }
 
           await this.ctx.invites.update({
             where: {

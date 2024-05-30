@@ -4,6 +4,7 @@ import EventsController from 'controllers/events.controller';
 import ChannelRouter from 'routers/channels';
 import { forwardEventId } from 'middlewares/forwardEventId.middleware';
 import GuestRouter from 'routers/guest';
+import ContractRouter from 'routers/contracts';
 
 export default class EventsRouter extends AbstractRouter {
   registerMiddlewares() {
@@ -44,5 +45,9 @@ export default class EventsRouter extends AbstractRouter {
     console.log('Registering GuestRouter under /:id/guests');
     const guestRouter = new GuestRouter(this.ctx, this.engine, '');
     this.extendRouter('/:id/guests/', guestRouter, forwardEventId());
+
+    console.log('Registering ContractRouter under /:id/contracts');
+    const contractRouter = new ContractRouter(this.ctx, this.engine, '');
+    this.extendRouter('/:id/contracts/', contractRouter, forwardEventId());
   }
 }

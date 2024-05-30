@@ -293,6 +293,40 @@ class EventsController extends AbstractController {
     }
   }
 
+  private addGuestToChannels(eventId: string, roleId: string) {
+    return async () => {
+      const channels = await this.ctx.channels.findMany({
+        where: {
+          AND: [
+            { eventId },
+            { channelType: ChannelType.PUBLIC },
+          ]
+        }
+      });
+
+      for (const channel of channels) {
+        const channelId = channel.id;
+        const channelParticipant = await this.ctx.channelParticipants.create({
+          data: {
+            role: Role.GUEST,
+            channel: {
+              connect: {
+                id: channelId,
+              }
+            },
+            guest: {
+              connect: {
+                id: roleId,
+              }
+            }
+          }
+        });
+        console.log(channelParticipant);
+      }
+
+    }
+  }
+
   acceptInvite() {
     return [
       validateRequestParams(z.object({ id: z.string(), inviteId: z.string(), role: z.enum(['guest', 'vendor']) })),
@@ -334,6 +368,10 @@ class EventsController extends AbstractController {
                 status: 'PENDING',
               },
             });
+
+            const addGuest = this.addGuestToChannels(eventId, guest?.id as string);
+            addGuest();
+
           } else {
             const vendor = await this.ctx.vendors.createVendorByUserId(userId);
 

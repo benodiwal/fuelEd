@@ -35,6 +35,8 @@ class SocketRoutes {
             },
           })) as ChannelParticipant;
 
+          if (!user) return;
+
           await Promise.all([
             this.#redisService.redis?.set(`${this.#SOCKET_ID_IN_CHANNEL}${socket.id}`, channelId),
             this.#redisService.redis?.set(`${this.#USER}${socket.id}`, JSON.stringify(user)),

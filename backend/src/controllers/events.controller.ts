@@ -218,7 +218,8 @@ class EventsController extends AbstractController {
               role: role,
             },
             eventId,
-          });
+          }); // >>>>>>> main
+          14;
 
           res.sendStatus(200);
         } catch (e: unknown) {
@@ -232,11 +233,11 @@ class EventsController extends AbstractController {
   private createVendorDM(name: string, roleId: string, eventId: string) {
     return async () => {
       try {
-        const event = await this.ctx.events.findUnqiue({
+        const event = (await this.ctx.events.findUnqiue({
           where: {
             id: eventId,
-          }
-        }) as Event;
+          },
+        })) as Event;
 
         const hostId = event.hostId;
         const channel = await this.ctx.channels.create({
@@ -246,9 +247,9 @@ class EventsController extends AbstractController {
             event: {
               connect: {
                 id: eventId,
-              }
-            }
-          }
+              },
+            },
+          },
         });
 
         const channelParticipantHost = await this.ctx.channelParticipants.create({
@@ -256,15 +257,15 @@ class EventsController extends AbstractController {
             role: Role.HOST,
             channel: {
               connect: {
-                id: channel.id
-              }
+                id: channel.id,
+              },
             },
             host: {
               connect: {
                 id: hostId,
-              }
-            }
-          }
+              },
+            },
+          },
         });
 
         console.log(channelParticipantHost);
@@ -275,22 +276,21 @@ class EventsController extends AbstractController {
             channel: {
               connect: {
                 id: channel.id,
-              }
+              },
             },
             host: {
               connect: {
                 id: roleId,
-              }
-            }
-          }
+              },
+            },
+          },
         });
 
         console.log(channelParticipantVendor);
-
       } catch (e) {
         console.error(e);
       }
-    }
+    };
   }
 
   acceptInvite() {
@@ -351,7 +351,7 @@ class EventsController extends AbstractController {
                 },
               },
             });
-            
+
             const createDM = this.createVendorDM(vendor?.name as string, vendor?.id as string, eventId);
             createDM();
 
@@ -360,12 +360,11 @@ class EventsController extends AbstractController {
                 vendor: {
                   connect: {
                     id: vendor?.id,
-                  }
+                  },
                 },
-              }
+              },
             });
-          
-        }
+          }
 
           await this.ctx.invites.update({
             where: {
@@ -544,7 +543,16 @@ class EventsController extends AbstractController {
             await this.ctx.eventPollOptions.createByPollId(eventPoll.id, option);
           }
 
-          res.status(200).json({ data: eventPoll });
+          const poll = await this.ctx.eventPolls.findUnqiue({
+            where: {
+              id: eventPoll.id,
+            },
+            include: {
+              options: true,
+            },
+          });
+
+          res.status(200).json({ data: poll });
         } catch (e) {
           console.error(e);
           next(new InternalServerError());

@@ -7,7 +7,6 @@ import emailService from 'libs/email.lib';
 import { z } from 'zod';
 import { Role } from 'interfaces/libs';
 import { Event, InviteStatus, RSVPStatus } from '@prisma/client';
-import { parse } from 'path';
 
 class EventsController extends AbstractController {
   getAllEventsByUserId() {
@@ -147,8 +146,25 @@ class EventsController extends AbstractController {
             },
             include: {
               host: true,
-              guests: true,
-              vendors: true,
+
+              guests: {
+                include: {
+                  guest: {
+                    include: {
+                      rsvps: true,
+                    },
+                  },
+                },
+              },
+
+              vendors: {
+                include: {
+                  vendor: true,
+                },
+              },
+
+              guestPosts: true,
+
               rsvps: true,
               channels: true,
               eventPosts: true,
@@ -574,6 +590,10 @@ class EventsController extends AbstractController {
             },
           });
 
+          if (!guest) {
+            return res.status(404).json({ data: 'Guest not found' });
+          }
+
           const rsvp = await this.ctx.rsvp.update({
             where: {
               eventId: eventId,
@@ -584,6 +604,7 @@ class EventsController extends AbstractController {
             },
           });
 
+          // updating the plus ones
           await this.ctx.guests.update({
             where: {
               id: guest?.id,
@@ -620,6 +641,10 @@ class EventsController extends AbstractController {
               },
             },
           });
+
+          if (!guest) {
+            return res.status(404).json({ data: 'Guest not found' });
+          }
 
           const rsvp = await this.ctx.rsvp.update({
             where: {

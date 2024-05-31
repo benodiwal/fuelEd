@@ -65,6 +65,7 @@ class ChannelController extends AbstractController {
           });
 
           for (const guest of guests) {
+
             const channelParticipantGuest = await this.ctx.channelParticipants.create({
               data: {
                 role: Role.GUEST,
@@ -80,6 +81,7 @@ class ChannelController extends AbstractController {
                 },
               },
             });
+            
             console.log(channelParticipantGuest);
           }
 

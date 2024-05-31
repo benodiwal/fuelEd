@@ -110,6 +110,7 @@ model EventPollOptions {
   text String
   count Int @default(0)
   eventPollId String
+  
   eventPollOptionSelection EventPollOptionSelection[]
   eventPoll EventPoll @relation(fields: [eventPollId], references: [id])
 }
@@ -120,7 +121,7 @@ model EventPollOptionSelection {
   eventPollOptionId String
 
   user User @relation(fields: [userId], references: [id])
-  eventPoll EventPollOptions @relation(fields: [eventPollOptionId], references: [id])
+  eventPollOption EventPollOptions @relation(fields: [eventPollOptionId], references: [id])
 }
 
 model Vendor{

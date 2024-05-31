@@ -297,11 +297,8 @@ class EventsController extends AbstractController {
     return async () => {
       const channels = await this.ctx.channels.findMany({
         where: {
-          AND: [
-            { eventId },
-            { channelType: ChannelType.PUBLIC },
-          ]
-        }
+          AND: [{ eventId }, { channelType: ChannelType.PUBLIC }],
+        },
       });
 
       for (const channel of channels) {
@@ -312,19 +309,18 @@ class EventsController extends AbstractController {
             channel: {
               connect: {
                 id: channelId,
-              }
+              },
             },
             guest: {
               connect: {
                 id: roleId,
-              }
-            }
-          }
+              },
+            },
+          },
         });
         console.log(channelParticipant);
       }
-
-    }
+    };
   }
 
   acceptInvite() {
@@ -371,7 +367,6 @@ class EventsController extends AbstractController {
 
             const addGuest = this.addGuestToChannels(eventId, guest?.id as string);
             addGuest();
-
           } else {
             const vendor = await this.ctx.vendors.createVendorByUserId(userId);
 
@@ -629,21 +624,27 @@ class EventsController extends AbstractController {
       validateRequestBody(updatePollOptionSchema),
       async (req: Request, res: Response, next: NextFunction) => {
         try {
-          const { pollId, id } = req.params as { pollId: string; id: string };
+          const { pollId } = req.params as { pollId: string };
 
-          const { count } = req.body;
+          const { pollOptionId } = req.body as { pollOptionId: string };
 
-          const eventPoll = await this.ctx.eventPollOptions.findFirst({
-            where: { eventPollId: pollId },
+          const eventPoll = await this.ctx.eventPolls.findUnqiue({
+            where: { id: pollId },
           });
 
           if (!eventPoll) {
-            return res.sendStatus(404);
+            return res.sendStatus(400);
           }
 
           const updatedOption = await this.ctx.eventPollOptions.update({
-            where: { id },
-            data: { count: count },
+            where: {
+              id: pollOptionId,
+            },
+            data: {
+              count: {
+                increment: 1,
+              }
+            }
           });
 
           if (!updatedOption) {

@@ -173,7 +173,11 @@ class EventsController extends AbstractController {
               eventFloorPlan: true,
               eventPolls: {
                 include: {
-                  options: true,
+                  options: {
+                    include: {
+                      eventPollOptionSelection: true,
+                    }
+                  },
                 },
               },
 
@@ -605,7 +609,11 @@ class EventsController extends AbstractController {
               id: pollId,
             },
             include: {
-              options: true,
+              options: {
+                include: {
+                  eventPollOptionSelection: true,
+                }
+              },
             },
           });
           console.log(eventPoll);
@@ -618,6 +626,25 @@ class EventsController extends AbstractController {
     ];
   }
 
+  private createPollOptionSelection(userId: string, pollOptionId: string) {
+    return async () => {
+      await this.ctx.eventPollOptionsSelection.create({
+        data: {
+          user: {
+            connect: {
+              id: userId,
+            }
+          },
+          eventPollOption: {
+            connect: {
+              id: pollOptionId,
+            }
+          }
+        }
+      });
+    }
+  }
+
   updatePollById() {
     return [
       validateRequestParams(z.object({ id: z.string(), pollId: z.string() })),
@@ -625,6 +652,7 @@ class EventsController extends AbstractController {
       async (req: Request, res: Response, next: NextFunction) => {
         try {
           const { pollId } = req.params as { pollId: string };
+          const userId = req.session.currentUserId as string;
 
           const { pollOptionId } = req.body as { pollOptionId: string };
 
@@ -650,6 +678,9 @@ class EventsController extends AbstractController {
           if (!updatedOption) {
             return res.sendStatus(404);
           }
+
+          const selection = this.createPollOptionSelection(userId, updatedOption.id);
+          selection();
 
           res.status(200).send({
             data: 'Successfully updated',

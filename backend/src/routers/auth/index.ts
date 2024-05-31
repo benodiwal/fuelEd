@@ -13,6 +13,6 @@ export default class AuthRouter extends AbstractRouter {
 
     console.log('Registering CalenderRouter under /calender');
     const calenderRouter = new CalenderRouter(this.ctx, this.engine, '');
-    this.extendRouter('/calender/', calenderRouter);
+    this.extendRouter('/calender/', calenderRouter, () => {});
   }
 }

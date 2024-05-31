@@ -21,7 +21,7 @@ model User{
   vendors Vendor[]
   guests Guest[]
   hosts Host[]
-
+  eventPollSelection EventPollOptionSelection[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -110,7 +110,17 @@ model EventPollOptions {
   text String
   count Int @default(0)
   eventPollId String
+  eventPollOptionSelection EventPollOptionSelection[]
   eventPoll EventPoll @relation(fields: [eventPollId], references: [id])
+}
+
+model EventPollOptionSelection {
+  id String @id @default(cuid())
+  userId String
+  eventPollOptionId String
+
+  user User @relation(fields: [userId], references: [id])
+  eventPoll EventPollOptions @relation(fields: [eventPollOptionId], references: [id])
 }
 
 model Vendor{

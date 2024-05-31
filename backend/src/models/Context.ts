@@ -33,6 +33,8 @@ import { IGuestPostModel } from 'interfaces/models/guestPost.model';
 import GuestPostModel from './guestPost.model';
 import { IContractModel } from 'interfaces/models/contract.model';
 import ContractModel from './contract.model';
+import { IEventPollOptionSelectionModel } from 'interfaces/models/eventPollSelection.model';
+import EventPollOptionSelectionModel from './eventPollSelection.model';
 
 export default class Context implements IContext {
   db: IDatabase;
@@ -53,6 +55,7 @@ export default class Context implements IContext {
   eventTheme: IEventThemeModel;
   guestPost: IGuestPostModel;
   contracts: IContractModel;
+  eventPollOptionsSelection: IEventPollOptionSelectionModel;
 
   constructor(database: IDatabase) {
     this.db = database;
@@ -73,5 +76,6 @@ export default class Context implements IContext {
     this.eventTheme = new EventThemeModel(database);
     this.guestPost = new GuestPostModel(database);
     this.contracts = new ContractModel(database);
+    this.eventPollOptionsSelection = new EventPollOptionSelectionModel(database);
   }
 }

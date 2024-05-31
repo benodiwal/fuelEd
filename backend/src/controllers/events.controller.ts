@@ -173,7 +173,11 @@ class EventsController extends AbstractController {
               eventFloorPlan: true,
               eventPolls: {
                 include: {
-                  options: true,
+                  options: {
+                    include: {
+                      eventPollOptionSelection: true,
+                    }
+                  },
                 },
               },
               eventHostMessage: true,
@@ -277,7 +281,7 @@ class EventsController extends AbstractController {
                 id: channel.id,
               },
             },
-            host: {
+            vendor: {
               connect: {
                 id: roleId,
               },
@@ -288,6 +292,36 @@ class EventsController extends AbstractController {
         console.log(channelParticipantVendor);
       } catch (e) {
         console.error(e);
+      }
+    };
+  }
+
+  private addGuestToChannels(eventId: string, roleId: string) {
+    return async () => {
+      const channels = await this.ctx.channels.findMany({
+        where: {
+          AND: [{ eventId }, { channelType: ChannelType.PUBLIC }],
+        },
+      });
+
+      for (const channel of channels) {
+        const channelId = channel.id;
+        const channelParticipant = await this.ctx.channelParticipants.create({
+          data: {
+            role: Role.GUEST,
+            channel: {
+              connect: {
+                id: channelId,
+              },
+            },
+            guest: {
+              connect: {
+                id: roleId,
+              },
+            },
+          },
+        });
+        console.log(channelParticipant);
       }
     };
   }
@@ -333,6 +367,9 @@ class EventsController extends AbstractController {
                 status: 'PENDING',
               },
             });
+
+            const addGuest = this.addGuestToChannels(eventId, guest?.id as string);
+            addGuest();
           } else {
             const vendor = await this.ctx.vendors.createVendorByUserId(userId);
 
@@ -561,7 +598,11 @@ class EventsController extends AbstractController {
               id: pollId,
             },
             include: {
-              options: true,
+              options: {
+                include: {
+                  eventPollOptionSelection: true,
+                }
+              },
             },
           });
           console.log(eventPoll);
@@ -574,32 +615,61 @@ class EventsController extends AbstractController {
     ];
   }
 
+  private createPollOptionSelection(userId: string, pollOptionId: string) {
+    return async () => {
+      await this.ctx.eventPollOptionsSelection.create({
+        data: {
+          user: {
+            connect: {
+              id: userId,
+            }
+          },
+          eventPollOption: {
+            connect: {
+              id: pollOptionId,
+            }
+          }
+        }
+      });
+    }
+  }
+
   updatePollById() {
     return [
       validateRequestParams(z.object({ id: z.string(), pollId: z.string() })),
       validateRequestBody(updatePollOptionSchema),
       async (req: Request, res: Response, next: NextFunction) => {
         try {
-          const { pollId, id } = req.params as { pollId: string; id: string };
+          const { pollId } = req.params as { pollId: string };
+          const userId = req.session.currentUserId as string;
 
-          const { count } = req.body;
+          const { pollOptionId } = req.body as { pollOptionId: string };
 
-          const eventPoll = await this.ctx.eventPollOptions.findFirst({
-            where: { eventPollId: pollId },
+          const eventPoll = await this.ctx.eventPolls.findUnqiue({
+            where: { id: pollId },
           });
 
           if (!eventPoll) {
-            return res.sendStatus(404);
+            return res.sendStatus(400);
           }
 
           const updatedOption = await this.ctx.eventPollOptions.update({
-            where: { id },
-            data: { count: count },
+            where: {
+              id: pollOptionId,
+            },
+            data: {
+              count: {
+                increment: 1,
+              }
+            }
           });
 
           if (!updatedOption) {
             return res.sendStatus(404);
           }
+
+          const selection = this.createPollOptionSelection(userId, updatedOption.id);
+          selection();
 
           res.status(200).send({
             data: 'Successfully updated',

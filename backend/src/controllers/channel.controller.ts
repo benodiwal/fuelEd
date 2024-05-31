@@ -80,6 +80,7 @@ class ChannelController extends AbstractController {
                 },
               },
             });
+
             console.log(channelParticipantGuest);
           }
 

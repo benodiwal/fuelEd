@@ -32,7 +32,7 @@ export default class EventsRouter extends AbstractRouter {
 
     this.registerPOST('/:id/polls', eventsController.createPoll());
     this.registerGET('/:id/polls/:pollId', eventsController.getPollById());
-    this.registerPOST('/:id/polls/:pollId/vote', eventsController.updatePollById());
+    this.registerPUT('/:id/polls/:pollId/vote', eventsController.updatePollById());
     this.registerPOST('/:id/venue', eventsController.createVenuePlan());
 
     this.registerGET('/:id/theme', eventsController.getEventTheme());

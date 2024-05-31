@@ -10,7 +10,6 @@ export default class ContractRouter extends AbstractRouter {
   registerRoutes(): void {
     const contractsController = new ContractsController(this.ctx);
     this.registerPUT('/:contractId/status', contractsController.updateStatus());
-
     this.registerPOST('/create', contractsController.createContract());
   }
 }

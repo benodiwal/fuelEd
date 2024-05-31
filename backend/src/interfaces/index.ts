@@ -16,6 +16,7 @@ import { IRSVPModel } from './models/rsvp.model';
 import { IEventThemeModel } from './models/eventTheme.model';
 import { IGuestPostModel } from './models/guestPost.model';
 import { IContractModel } from './models/contract.model';
+import { IEventPollOptionSelectionModel } from './models/eventPollSelection.model';
 
 export type txClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
 
@@ -42,4 +43,5 @@ export interface IContext {
   eventTheme: IEventThemeModel;
   guestPost: IGuestPostModel;
   contracts: IContractModel;
+  eventPollOptionsSelection: IEventPollOptionSelectionModel;
 }

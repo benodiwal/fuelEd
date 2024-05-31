@@ -46,8 +46,8 @@ model Guest {
   name  String
 
 
-  nickName String?
-  avatar String @default("")
+  nickName String @default("")
+  avatar Int @default(1)
   profileCompleted Boolean @default(false)
   plusOnes Int @default(0)
 

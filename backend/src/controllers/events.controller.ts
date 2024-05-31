@@ -282,7 +282,7 @@ class EventsController extends AbstractController {
                 id: channel.id,
               },
             },
-            host: {
+            vendor: {
               connect: {
                 id: roleId,
               },

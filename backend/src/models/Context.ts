@@ -37,6 +37,8 @@ import { IEventPollOptionSelectionModel } from 'interfaces/models/eventPollSelec
 import EventPollOptionSelectionModel from './eventPollSelection.model';
 import { IEventHostMessageModel } from 'interfaces/models/eventHostMessage.model';
 import EventHostMessageModel from './eventHostMessage.model';
+import { IVenueModel } from 'interfaces/models/venue.model';
+import VenueModel from './venue.model';
 
 export default class Context implements IContext {
   db: IDatabase;
@@ -59,6 +61,7 @@ export default class Context implements IContext {
   contracts: IContractModel;
   eventPollOptionsSelection: IEventPollOptionSelectionModel;
   eventHostMessage: IEventHostMessageModel;
+  venue: IVenueModel;
 
   constructor(database: IDatabase) {
     this.db = database;
@@ -81,5 +84,6 @@ export default class Context implements IContext {
     this.contracts = new ContractModel(database);
     this.eventPollOptionsSelection = new EventPollOptionSelectionModel(database);
     this.eventHostMessage = new EventHostMessageModel(database);
+    this.venue = new VenueModel(database);
   }
 }

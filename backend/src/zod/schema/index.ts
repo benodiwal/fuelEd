@@ -32,3 +32,11 @@ export const addEventSchema = z.object({
   start: z.string(),
   end: z.string(),
 });
+
+export const createVenueSchema = z.object({
+  name: z.string(),
+  address: z.string(),
+  zipCode: z.string(),
+  city: z.string(),
+  state: z.string(),
+});

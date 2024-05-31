@@ -19,6 +19,7 @@ export default class EventsRouter extends AbstractRouter {
     this.registerGET('/:id', eventsController.getEventById());
 
     this.registerPOST('/:id/hostMessage', eventsController.createHostMessage());
+    this.registerPOST('/:id/venue', eventsController.createVenue());
 
     this.registerPOST('/:id/posts', eventsController.createPost());
     this.registerGET('/:id/posts/:postId', eventsController.getPostById());

@@ -1,7 +1,7 @@
 import { validateRequestBody, validateRequestParams } from 'validators/validateRequest';
 import AbstractController from './index.controller';
 import { NextFunction, Request, Response } from 'express';
-import { createEventSchema, createPollSchema, createPostSchema, updatePollOptionSchema } from 'zod/schema';
+import { createEventSchema, createPollSchema, createPostSchema, createVenueSchema, updatePollOptionSchema } from 'zod/schema';
 import { InternalServerError } from 'errors/internal-server-error';
 import emailService from 'libs/email.lib';
 import { Role as RoleForBody } from 'interfaces/libs';
@@ -54,9 +54,9 @@ class EventsController extends AbstractController {
           for (const vendor of vendors) {
             const vendorEvents = await this.ctx.events.findMany({
               where: {
-                guests: {
+                vendors: {
                   some: {
-                    guestId: vendor.id,
+                    vendorId: vendor.id,
                   },
                 },
               },
@@ -949,7 +949,46 @@ class EventsController extends AbstractController {
             },
           });
 
-          res.status(200).send({ data: eventHostMessage });
+          res.status(200).json({ data: eventHostMessage });
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
+
+  createVenue() {
+    return [
+      validateRequestParams(z.object({ id: z.string() })),
+      validateRequestBody(createVenueSchema),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { id } = req.params as { id: string };
+          const { name, address, zipCode, city, state } = req.body as {
+            name: string;
+            address: string;
+            zipCode: string;
+            city: string;
+            state: string;
+          };
+
+          const venue = await this.ctx.venue.create({
+            data: {
+              name,
+              address,
+              zipCode,
+              city,
+              state,
+              event: {
+                connect: {
+                  id,
+                },
+              },
+            },
+          });
+
+          res.status(200).json({ data: venue });
         } catch (e) {
           console.error(e);
           next(new InternalServerError());

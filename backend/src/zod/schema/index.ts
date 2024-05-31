@@ -23,5 +23,5 @@ export const createPollSchema = z.object({
 });
 
 export const updatePollOptionSchema = z.object({
-  count: z.number(),
+  pollOptionId: z.string(),
 });

@@ -232,11 +232,11 @@ class EventsController extends AbstractController {
   private createVendorDM(name: string, roleId: string, eventId: string) {
     return async () => {
       try {
-        const event = await this.ctx.events.findUnqiue({
+        const event = (await this.ctx.events.findUnqiue({
           where: {
             id: eventId,
-          }
-        }) as Event;
+          },
+        })) as Event;
 
         const hostId = event.hostId;
         const channel = await this.ctx.channels.create({
@@ -246,9 +246,9 @@ class EventsController extends AbstractController {
             event: {
               connect: {
                 id: eventId,
-              }
-            }
-          }
+              },
+            },
+          },
         });
 
         const channelParticipantHost = await this.ctx.channelParticipants.create({
@@ -256,15 +256,15 @@ class EventsController extends AbstractController {
             role: Role.HOST,
             channel: {
               connect: {
-                id: channel.id
-              }
+                id: channel.id,
+              },
             },
             host: {
               connect: {
                 id: hostId,
-              }
-            }
-          }
+              },
+            },
+          },
         });
 
         console.log(channelParticipantHost);
@@ -275,33 +275,29 @@ class EventsController extends AbstractController {
             channel: {
               connect: {
                 id: channel.id,
-              }
+              },
             },
             host: {
               connect: {
                 id: roleId,
-              }
-            }
-          }
+              },
+            },
+          },
         });
 
         console.log(channelParticipantVendor);
-
       } catch (e) {
         console.error(e);
       }
-    }
+    };
   }
 
   private addGuestToChannels(eventId: string, roleId: string) {
     return async () => {
       const channels = await this.ctx.channels.findMany({
         where: {
-          AND: [
-            { eventId },
-            { channelType: ChannelType.PUBLIC },
-          ]
-        }
+          AND: [{ eventId }, { channelType: ChannelType.PUBLIC }],
+        },
       });
 
       for (const channel of channels) {
@@ -312,19 +308,18 @@ class EventsController extends AbstractController {
             channel: {
               connect: {
                 id: channelId,
-              }
+              },
             },
             guest: {
               connect: {
                 id: roleId,
-              }
-            }
-          }
+              },
+            },
+          },
         });
         console.log(channelParticipant);
       }
-
-    }
+    };
   }
 
   acceptInvite() {
@@ -371,7 +366,6 @@ class EventsController extends AbstractController {
 
             const addGuest = this.addGuestToChannels(eventId, guest?.id as string);
             addGuest();
-
           } else {
             const vendor = await this.ctx.vendors.createVendorByUserId(userId);
 
@@ -389,7 +383,7 @@ class EventsController extends AbstractController {
                 },
               },
             });
-            
+
             const createDM = this.createVendorDM(vendor?.name as string, vendor?.id as string, eventId);
             createDM();
 
@@ -398,12 +392,11 @@ class EventsController extends AbstractController {
                 vendor: {
                   connect: {
                     id: vendor?.id,
-                  }
+                  },
                 },
-              }
+              },
             });
-          
-        }
+          }
 
           await this.ctx.invites.update({
             where: {
@@ -621,21 +614,27 @@ class EventsController extends AbstractController {
       validateRequestBody(updatePollOptionSchema),
       async (req: Request, res: Response, next: NextFunction) => {
         try {
-          const { pollId, id } = req.params as { pollId: string; id: string };
+          const { pollId } = req.params as { pollId: string };
 
-          const { count } = req.body;
+          const { pollOptionId } = req.body as { pollOptionId: string };
 
-          const eventPoll = await this.ctx.eventPollOptions.findFirst({
-            where: { eventPollId: pollId },
+          const eventPoll = await this.ctx.eventPolls.findUnqiue({
+            where: { id: pollId },
           });
 
           if (!eventPoll) {
-            return res.sendStatus(404);
+            return res.sendStatus(400);
           }
 
           const updatedOption = await this.ctx.eventPollOptions.update({
-            where: { id },
-            data: { count: count },
+            where: {
+              id: pollOptionId,
+            },
+            data: {
+              count: {
+                increment: 1,
+              }
+            }
           });
 
           if (!updatedOption) {

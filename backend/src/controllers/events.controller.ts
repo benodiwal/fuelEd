@@ -6,8 +6,6 @@ import { InternalServerError } from 'errors/internal-server-error';
 import emailService from 'libs/email.lib';
 import { Role as RoleForBody } from 'interfaces/libs';
 import { z } from 'zod';
-
-// import { Role } from 'interfaces/libs';
 import { ChannelType, Event, InviteStatus, Role, RSVPStatus } from '@prisma/client';
 
 class EventsController extends AbstractController {
@@ -158,15 +156,17 @@ class EventsController extends AbstractController {
                   },
                 },
               },
-
               vendors: {
                 include: {
-                  vendor: true,
+                  vendor: {
+                    include: {
+                      contract: true,
+                    },
+                  },
                 },
               },
-
               guestPosts: true,
-
+              invites: true,
               rsvps: true,
               channels: true,
               eventPosts: true,
@@ -180,7 +180,6 @@ class EventsController extends AbstractController {
                   },
                 },
               },
-
               eventHostMessage: true,
             },
           });
@@ -391,16 +390,6 @@ class EventsController extends AbstractController {
 
             const createDM = this.createVendorDM(vendor?.name as string, vendor?.id as string, eventId);
             createDM();
-
-            await this.ctx.contracts.create({
-              data: {
-                vendor: {
-                  connect: {
-                    id: vendor?.id,
-                  },
-                },
-              },
-            });
           }
 
           await this.ctx.invites.update({

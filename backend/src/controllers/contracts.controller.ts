@@ -34,26 +34,36 @@ export default class ContractsController extends AbstractController {
     ];
   }
 
-  updateContractData() {
+  createContract() {
     return [
-      validateRequestParams(z.object({ contractId: z.string() })),
-      validateRequestBody(z.object({ contractData: z.string() })),
+      validateRequestBody(z.object({ vendorId: z.string(), contractData: z.string() })),
       async (req: Request, res: Response, next: NextFunction) => {
         try {
-          const { contractId } = req.params as { contractId: string };
-          const { contractData } = req.body as { contractData: string };
+          const { contractData, vendorId } = req.body as { contractData: string; vendorId: string };
 
-          const contract = await this.ctx.contracts.update({
+          const vendor = await this.ctx.vendors.findUnqiue({
             where: {
-              id: contractId,
+              id: vendorId,
             },
+          });
+
+          if (!vendor) {
+            return res.status(400).send({ error: 'Vendor not found' });
+          }
+
+          const contract = await this.ctx.contracts.create({
             data: {
               contractData,
+              vendor: {
+                connect: {
+                  id: vendor?.id,
+                },
+              },
             },
           });
 
           if (!contract) {
-            return res.status(400).send({ error: 'Contract not found' });
+            return res.status(400).send({ error: 'Error in creating a contract' });
           }
 
           return res.status(200).send({ data: contract });

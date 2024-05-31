@@ -176,7 +176,7 @@ class EventsController extends AbstractController {
                   options: {
                     include: {
                       eventPollOptionSelection: true,
-                    }
+                    },
                   },
                 },
               },
@@ -222,8 +222,7 @@ class EventsController extends AbstractController {
               role: role,
             },
             eventId,
-          }); // >>>>>>> main
-          14;
+          });
 
           res.sendStatus(200);
         } catch (e: unknown) {
@@ -612,7 +611,7 @@ class EventsController extends AbstractController {
               options: {
                 include: {
                   eventPollOptionSelection: true,
-                }
+                },
               },
             },
           });
@@ -633,16 +632,16 @@ class EventsController extends AbstractController {
           user: {
             connect: {
               id: userId,
-            }
+            },
           },
           eventPollOption: {
             connect: {
               id: pollOptionId,
-            }
-          }
-        }
+            },
+          },
+        },
       });
-    }
+    };
   }
 
   updatePollById() {
@@ -671,8 +670,8 @@ class EventsController extends AbstractController {
             data: {
               count: {
                 increment: 1,
-              }
-            }
+              },
+            },
           });
 
           if (!updatedOption) {
@@ -935,6 +934,35 @@ class EventsController extends AbstractController {
           });
         } catch (e) {
           console.log(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
+
+  createHostMessage() {
+    return [
+      validateRequestParams(z.object({ id: z.string() })),
+      validateRequestBody(z.object({ message: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { id } = req.params as { id: string };
+          const { message } = req.body as { message: string };
+
+          const eventHostMessage = await this.ctx.eventHostMessage.create({
+            data: {
+              message,
+              event: {
+                connect: {
+                  id,
+                },
+              },
+            },
+          });
+
+          res.status(200).send({ data: eventHostMessage });
+        } catch (e) {
+          console.error(e);
           next(new InternalServerError());
         }
       },

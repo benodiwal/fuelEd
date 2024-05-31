@@ -25,3 +25,10 @@ export const createPollSchema = z.object({
 export const updatePollOptionSchema = z.object({
   count: z.number(),
 });
+
+export const addEventSchema = z.object({
+  summary: z.string(),
+  description: z.string(),
+  start: z.string(),
+  end: z.string(),
+});

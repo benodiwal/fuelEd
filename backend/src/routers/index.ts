@@ -23,7 +23,7 @@ export default abstract class AbstractRouter {
     this.engine.use(this.#path, this.router);
   }
 
-  extendRouter(path: string, other: AbstractRouter, middleware: RequestHandler) {
+  extendRouter(path: string, other: AbstractRouter, middleware?: RequestHandler) {
     console.log(`Extending router at path: ${this.#path}${path}`);
     other.registerHealthRoutes();
     const middlewares = other.registerMiddlewares();
@@ -31,7 +31,7 @@ export default abstract class AbstractRouter {
       other.router.use(middleware());
     }
     other.registerRoutes();
-    this.router.use(path, middleware, other.router);
+    this.router.use(path, middleware!, other.router);
   }
 
   registerGET(path: string, handlers: Handler[]) {

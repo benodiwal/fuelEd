@@ -4,22 +4,22 @@ import { calendar_v3, google } from 'googleapis';
 import { CalenderEvent } from 'types/calender.types';
 
 class GoogleCalender {
-    #oautnh2Client: OAuth2Client;
+    #oauth2Client: OAuth2Client;
     #calender: calendar_v3.Calendar;
     #SCOPES: string[];
 
     constructor() {
-        this.#oautnh2Client = new google.auth.OAuth2({
+        this.#oauth2Client = new google.auth.OAuth2({
             clientId: getEnvVar('GOOGLE_CALENDER_OAUTH_CLIENT_ID'),
             clientSecret: getEnvVar('GOOGLE_CALENDER_OAUTH_CLIENT_SECRET'),
             redirectUri: getEnvVar('GOOGLE_CALENDER_OAUTH_REDIRECT_URI'),
         });
-        this.#calender = google.calendar({ version: 'v3', auth: this.#oautnh2Client });
+        this.#calender = google.calendar({ version: 'v3', auth: this.#oauth2Client });
         this.#SCOPES = [getEnvVar('GOOGLE_CALENDER_OAUTH_SCOPE') as string];
     }
 
     generateAuthUrl(): string {
-        const authUrl = this.#oautnh2Client.generateAuthUrl({
+        const authUrl = this.#oauth2Client.generateAuthUrl({
             access_type: 'offline',
             scope: this.#SCOPES,
         });
@@ -28,8 +28,8 @@ class GoogleCalender {
 
     async getToken(code: string) {
         try {
-            const { tokens } = await this.#oautnh2Client.getToken(code);
-            this.#oautnh2Client.setCredentials(tokens);
+            const { tokens } = await this.#oauth2Client.getToken(code);
+            this.#oauth2Client.setCredentials(tokens);
         } catch (e) {
             console.error(e);
         }
@@ -54,17 +54,18 @@ class GoogleCalender {
 
         try {
             const response = this.#calender.events.insert({
-            auth: this.#oautnh2Client,
+            auth: this.#oauth2Client,
             calendarId: 'primary',
             requestBody: event,
             });
-            console.log(response);
+            console.log('Event Created: ', response);
         } catch (e) {
-            console.error(e);
+            console.error('Error adding event: ', e);
         }
                     
     }
 
 }
 
-export default GoogleCalender;
+const googleCalender = new GoogleCalender();
+export default googleCalender;

@@ -320,6 +320,13 @@ class ChannelController extends AbstractController {
             where: {
               channelId,
             },
+            include: {
+              sender: {
+                include: {
+                  guest: true,
+                }
+              }
+            }
           });
           if (!channelMessages) {
             return res.status(404).json({ error: 'Message not found' });

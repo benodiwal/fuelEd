@@ -1,70 +1,77 @@
-import { InternalServerError } from "errors/internal-server-error";
-import AbstractController from "./index.controller"
-import { Request, Response, NextFunction } from "express";
+import { InternalServerError } from 'errors/internal-server-error';
+import AbstractController from './index.controller';
+import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { ContractStatus } from "@prisma/client";
-import { validateRequestBody, validateRequestParams } from "validators/validateRequest";
+import { ContractStatus } from '@prisma/client';
+import { validateRequestBody, validateRequestParams } from 'validators/validateRequest';
 
 export default class ContractsController extends AbstractController {
+  updateStatus() {
+    return [
+      validateRequestParams(z.object({ contractId: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { contractId } = req.params as { contractId: string };
+          const contract = await this.ctx.contracts.update({
+            where: {
+              id: contractId,
+            },
+            data: {
+              status: ContractStatus.SIGNED_BY_BOTH,
+            },
+          });
 
-    updateStatus() {
-        return [
-            validateRequestParams(z.object({ contractId: z.string() })),
-            async (req: Request, res: Response, next: NextFunction) => {
-                try {
-                    const { contractId } = req.params as { contractId: string };
-                    const contract = await this.ctx.contracts.update({
-                        where: {
-                            id: contractId,
-                        },
-                        data: {
-                            status: ContractStatus.SIGNED_BY_BOTH,
-                        }
-                    });
+          if (!contract) {
+            return res.status(400).send({ error: 'Contract not found' });
+          }
 
-                    if (!contract) {
-                        return res.status(400).send({ error: 'Contract not found' });
-                    }
+          return res.status(200).send({ data: contract });
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
 
-                    return res.status(200).send({ data: contract });
-                } catch (e) {
-                    console.error(e);
-                    next(new InternalServerError());
-                }
-            }
-        ];
-    }
+  createContract() {
+    return [
+      validateRequestBody(z.object({ vendorId: z.string(), contractData: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { contractData, vendorId } = req.body as { contractData: string; vendorId: string };
 
-    updateContractData() {
-        return [
-            validateRequestParams(z.object({ contractId: z.string() })),
-            validateRequestBody(z.object({ contractData: z.string() })),
-            async (req: Request, res: Response, next: NextFunction) => {
-                try {
-                    const { contractId } = req.params as { contractId: string };
-                    const { contractData } = req.body as { contractData: string };
-  
-                    const contract = await this.ctx.contracts.update({
-                        where: {
-                            id: contractId,
-                        },
-                        data: {
-                            contractData
-                        }
-                    });
+          const vendor = await this.ctx.vendors.findUnqiue({
+            where: {
+              id: vendorId,
+            },
+          });
 
-                    if (!contract) {
-                        return res.status(400).send({ error: 'Contract not found' });
-                    }
+          if (!vendor) {
+            return res.status(400).send({ error: 'Vendor not found' });
+          }
 
-                    return res.status(200).send({ data: contract });
+          const contract = await this.ctx.contracts.create({
+            data: {
+              contractData,
+              vendor: {
+                connect: {
+                  id: vendor?.id,
+                },
+              },
+            },
+          });
 
-                } catch (e) {
-                    console.error(e);
-                    next(new InternalServerError());
-                }
-            }
-        ];
-    }
+          if (!contract) {
+            return res.status(400).send({ error: 'Error in creating a contract' });
+          }
 
+          return res.status(200).send({ data: contract });
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
 }

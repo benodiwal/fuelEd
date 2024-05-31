@@ -14,7 +14,11 @@ const envSchema = z.object({
   GOOGLE_OAUTH_CLIENT_ID: z.string(),
   GOOGLE_OAUTH_CLIENT_SECRET: z.string(),
   GOOGLE_OAUTH_REDIRECT_URI: z.string(),
-  // AUTHORIZATION_URL: z.string(),
+  GOOGLE_CALENDER_OAUTH_CLIENT_ID: z.string(),
+  GOOGLE_CALENDER_OAUTH_CLIENT_SECRET: z.string(),
+  GOOGLE_CALENDER_OAUTH_REDIRECT_URI: z.string(),
+  GOOGLE_CALENDER_OAUTH_SCOPE: z.string(),
+  GOOGLE_CALENDER_TIMEZONE: z.string(),
 });
 
 export const parseEnv = (): void => {

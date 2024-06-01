@@ -9,7 +9,11 @@ export default class ContractRouter extends AbstractRouter {
 
   registerRoutes(): void {
     const contractsController = new ContractsController(this.ctx);
+
+    this.registerGET('/all', contractsController.getAllContractsByUserId());
+
     this.registerPUT('/:contractId/status', contractsController.updateStatus());
+
     this.registerPOST('/create', contractsController.createContract());
   }
 }

@@ -271,7 +271,8 @@ model Venue {
 
 model Invite {
   id    String  @id @default(cuid())
-  status InviteStatus @default(PENDING)
+  status InviteStatus @default(PENDING_GUEST)
+
   email String
   event Event @relation(fields: [eventId], references: [id])
   eventId String 
@@ -341,10 +342,13 @@ enum VendorType {
 }
 
 enum InviteStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
+  PENDING_VENDOR
+  CONFIRMED_VENDOR
+  PENDING_GUEST
+  CONFIRMED_GUEST
 }
+
+
 
 enum RSVPStatus {
   PENDING

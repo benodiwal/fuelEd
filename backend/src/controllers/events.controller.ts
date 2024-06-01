@@ -205,6 +205,7 @@ class EventsController extends AbstractController {
           const invite = await this.ctx.invites.create({
             data: {
               email,
+              status: role == 'guest' ? InviteStatus.PENDING_GUEST : InviteStatus.PENDING_VENDOR,
               event: {
                 connect: {
                   id: eventId,
@@ -369,6 +370,15 @@ class EventsController extends AbstractController {
 
             const addGuest = this.addGuestToChannels(eventId, guest?.id as string);
             addGuest();
+
+            await this.ctx.invites.update({
+              where: {
+                id: inviteId,
+              },
+              data: {
+                status: InviteStatus.CONFIRMED_GUEST,
+              },
+            });
           } else {
             const vendor = await this.ctx.vendors.createVendorByUserId(userId);
 
@@ -389,16 +399,16 @@ class EventsController extends AbstractController {
 
             const createDM = this.createVendorDM(vendor?.name as string, vendor?.id as string, eventId);
             createDM();
-          }
 
-          await this.ctx.invites.update({
-            where: {
-              id: inviteId,
-            },
-            data: {
-              status: InviteStatus.CONFIRMED,
-            },
-          });
+            await this.ctx.invites.update({
+              where: {
+                id: inviteId,
+              },
+              data: {
+                status: InviteStatus.CONFIRMED_VENDOR,
+              },
+            });
+          }
 
           res.sendStatus(200);
         } catch (e: unknown) {
@@ -750,7 +760,6 @@ class EventsController extends AbstractController {
             },
           });
 
-          // updating the plus ones
           await this.ctx.guests.update({
             where: {
               id: guest?.id,
@@ -845,7 +854,6 @@ class EventsController extends AbstractController {
           const { id: eventId } = req.params as unknown as { id: string };
           const { primaryColor, textColor } = req.body as unknown as { primaryColor: string; textColor: string };
 
-          // also need to check whether the user is the host of the event
           const theme = await this.ctx.eventTheme.upsert({
             where: {
               eventId,

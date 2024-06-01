@@ -1,7 +1,7 @@
 import { validateRequestBody, validateRequestParams } from 'validators/validateRequest';
 import AbstractController from './index.controller';
 import { NextFunction, Request, Response } from 'express';
-import { createEventSchema, createPollSchema, createPostSchema, updatePollOptionSchema } from 'zod/schema';
+import { createEventSchema, createPollSchema, createPostSchema, createVenueSchema, updatePollOptionSchema } from 'zod/schema';
 import { InternalServerError } from 'errors/internal-server-error';
 import emailService from 'libs/email.lib';
 import { Role as RoleForBody } from 'interfaces/libs';
@@ -54,9 +54,9 @@ class EventsController extends AbstractController {
           for (const vendor of vendors) {
             const vendorEvents = await this.ctx.events.findMany({
               where: {
-                guests: {
+                vendors: {
                   some: {
-                    guestId: vendor.id,
+                    vendorId: vendor.id,
                   },
                 },
               },
@@ -146,18 +146,40 @@ class EventsController extends AbstractController {
             },
             include: {
               host: true,
-              guests: true,
-              vendors: true,
+
+              guests: {
+                include: {
+                  guest: {
+                    include: {
+                      rsvps: true,
+                    },
+                  },
+                },
+              },
+              vendors: {
+                include: {
+                  vendor: {
+                    include: {
+                      contract: true,
+                    },
+                  },
+                },
+              },
+              guestPosts: true,
+              invites: true,
               rsvps: true,
               channels: true,
               eventPosts: true,
               eventFloorPlan: true,
               eventPolls: {
                 include: {
-                  options: true,
+                  options: {
+                    include: {
+                      eventPollOptionSelection: true,
+                    },
+                  },
                 },
               },
-
               eventHostMessage: true,
             },
           });
@@ -213,11 +235,11 @@ class EventsController extends AbstractController {
   private createVendorDM(name: string, roleId: string, eventId: string) {
     return async () => {
       try {
-        const event = await this.ctx.events.findUnqiue({
+        const event = (await this.ctx.events.findUnqiue({
           where: {
             id: eventId,
-          }
-        }) as Event;
+          },
+        })) as Event;
 
         const hostId = event.hostId;
         const channel = await this.ctx.channels.create({
@@ -227,9 +249,9 @@ class EventsController extends AbstractController {
             event: {
               connect: {
                 id: eventId,
-              }
-            }
-          }
+              },
+            },
+          },
         });
 
         const channelParticipantHost = await this.ctx.channelParticipants.create({
@@ -237,15 +259,15 @@ class EventsController extends AbstractController {
             role: Role.HOST,
             channel: {
               connect: {
-                id: channel.id
-              }
+                id: channel.id,
+              },
             },
             host: {
               connect: {
                 id: hostId,
-              }
-            }
-          }
+              },
+            },
+          },
         });
 
         console.log(channelParticipantHost);
@@ -256,22 +278,51 @@ class EventsController extends AbstractController {
             channel: {
               connect: {
                 id: channel.id,
-              }
+              },
             },
-            host: {
+            vendor: {
               connect: {
                 id: roleId,
-              }
-            }
-          }
+              },
+            },
+          },
         });
 
         console.log(channelParticipantVendor);
-
       } catch (e) {
         console.error(e);
       }
-    }
+    };
+  }
+
+  private addGuestToChannels(eventId: string, roleId: string) {
+    return async () => {
+      const channels = await this.ctx.channels.findMany({
+        where: {
+          AND: [{ eventId }, { channelType: ChannelType.PUBLIC }],
+        },
+      });
+
+      for (const channel of channels) {
+        const channelId = channel.id;
+        const channelParticipant = await this.ctx.channelParticipants.create({
+          data: {
+            role: Role.GUEST,
+            channel: {
+              connect: {
+                id: channelId,
+              },
+            },
+            guest: {
+              connect: {
+                id: roleId,
+              },
+            },
+          },
+        });
+        console.log(channelParticipant);
+      }
+    };
   }
 
   acceptInvite() {
@@ -315,6 +366,9 @@ class EventsController extends AbstractController {
                 status: 'PENDING',
               },
             });
+
+            const addGuest = this.addGuestToChannels(eventId, guest?.id as string);
+            addGuest();
           } else {
             const vendor = await this.ctx.vendors.createVendorByUserId(userId);
 
@@ -332,21 +386,10 @@ class EventsController extends AbstractController {
                 },
               },
             });
-            
+
             const createDM = this.createVendorDM(vendor?.name as string, vendor?.id as string, eventId);
             createDM();
-
-            await this.ctx.contracts.create({
-              data: {
-                vendor: {
-                  connect: {
-                    id: vendor?.id,
-                  }
-                },
-              }
-            });
-          
-        }
+          }
 
           await this.ctx.invites.update({
             where: {
@@ -525,7 +568,16 @@ class EventsController extends AbstractController {
             await this.ctx.eventPollOptions.createByPollId(eventPoll.id, option);
           }
 
-          res.status(200).json({ data: eventPoll });
+          const poll = await this.ctx.eventPolls.findUnqiue({
+            where: {
+              id: eventPoll.id,
+            },
+            include: {
+              options: true,
+            },
+          });
+
+          res.status(200).json({ data: poll });
         } catch (e) {
           console.error(e);
           next(new InternalServerError());
@@ -545,7 +597,11 @@ class EventsController extends AbstractController {
               id: pollId,
             },
             include: {
-              options: true,
+              options: {
+                include: {
+                  eventPollOptionSelection: true,
+                },
+              },
             },
           });
           console.log(eventPoll);
@@ -558,32 +614,61 @@ class EventsController extends AbstractController {
     ];
   }
 
+  private createPollOptionSelection(userId: string, pollOptionId: string) {
+    return async () => {
+      await this.ctx.eventPollOptionsSelection.create({
+        data: {
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
+          eventPollOption: {
+            connect: {
+              id: pollOptionId,
+            },
+          },
+        },
+      });
+    };
+  }
+
   updatePollById() {
     return [
       validateRequestParams(z.object({ id: z.string(), pollId: z.string() })),
       validateRequestBody(updatePollOptionSchema),
       async (req: Request, res: Response, next: NextFunction) => {
         try {
-          const { pollId, id } = req.params as { pollId: string; id: string };
+          const { pollId } = req.params as { pollId: string };
+          const userId = req.session.currentUserId as string;
 
-          const { count } = req.body;
+          const { pollOptionId } = req.body as { pollOptionId: string };
 
-          const eventPoll = await this.ctx.eventPollOptions.findFirst({
-            where: { eventPollId: pollId },
+          const eventPoll = await this.ctx.eventPolls.findUnqiue({
+            where: { id: pollId },
           });
 
           if (!eventPoll) {
-            return res.sendStatus(404);
+            return res.sendStatus(400);
           }
 
           const updatedOption = await this.ctx.eventPollOptions.update({
-            where: { id },
-            data: { count: count },
+            where: {
+              id: pollOptionId,
+            },
+            data: {
+              count: {
+                increment: 1,
+              },
+            },
           });
 
           if (!updatedOption) {
             return res.sendStatus(404);
           }
+
+          const selection = this.createPollOptionSelection(userId, updatedOption.id);
+          selection();
 
           res.status(200).send({
             data: 'Successfully updated',
@@ -651,6 +736,10 @@ class EventsController extends AbstractController {
             },
           });
 
+          if (!guest) {
+            return res.status(404).json({ data: 'Guest not found' });
+          }
+
           const rsvp = await this.ctx.rsvp.update({
             where: {
               eventId: eventId,
@@ -661,6 +750,7 @@ class EventsController extends AbstractController {
             },
           });
 
+          // updating the plus ones
           await this.ctx.guests.update({
             where: {
               id: guest?.id,
@@ -697,6 +787,10 @@ class EventsController extends AbstractController {
               },
             },
           });
+
+          if (!guest) {
+            return res.status(404).json({ data: 'Guest not found' });
+          }
 
           const rsvp = await this.ctx.rsvp.update({
             where: {
@@ -829,6 +923,74 @@ class EventsController extends AbstractController {
           });
         } catch (e) {
           console.log(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
+
+  createHostMessage() {
+    return [
+      validateRequestParams(z.object({ id: z.string() })),
+      validateRequestBody(z.object({ message: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { id } = req.params as { id: string };
+          const { message } = req.body as { message: string };
+
+          const eventHostMessage = await this.ctx.eventHostMessage.create({
+            data: {
+              message,
+              event: {
+                connect: {
+                  id,
+                },
+              },
+            },
+          });
+
+          res.status(200).json({ data: eventHostMessage });
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
+
+  createVenue() {
+    return [
+      validateRequestParams(z.object({ id: z.string() })),
+      validateRequestBody(createVenueSchema),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { id } = req.params as { id: string };
+          const { name, address, zipCode, city, state } = req.body as {
+            name: string;
+            address: string;
+            zipCode: string;
+            city: string;
+            state: string;
+          };
+
+          const venue = await this.ctx.venue.create({
+            data: {
+              name,
+              address,
+              zipCode,
+              city,
+              state,
+              event: {
+                connect: {
+                  id,
+                },
+              },
+            },
+          });
+
+          res.status(200).json({ data: venue });
+        } catch (e) {
+          console.error(e);
           next(new InternalServerError());
         }
       },

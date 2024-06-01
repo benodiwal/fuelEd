@@ -1,14 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import AbstractController from './index.controller';
-import { validateRequestBody, validateRequestParams } from 'validators/validateRequest';
+import { validateRequestBody } from 'validators/validateRequest';
 import { z } from 'zod';
 import { InternalServerError } from 'errors/internal-server-error';
 
 class GuestController extends AbstractController {
   updateGuest() {
     return [
-      validateRequestParams(z.object({ eventId: z.string() })),
-      validateRequestBody(z.object({ avatar: z.string(), nickName: z.string() })),
+      validateRequestBody(z.object({ avatar: z.number(), nickName: z.string() })),
       async (req: Request, res: Response, next: NextFunction) => {
         try {
           const eventId = req.eventId as string;
@@ -30,7 +29,7 @@ class GuestController extends AbstractController {
             throw new InternalServerError();
           }
 
-          await this.ctx.guests.update({
+          const updatedGuest = await this.ctx.guests.update({
             where: {
               id: guest.id,
             },
@@ -40,7 +39,7 @@ class GuestController extends AbstractController {
             },
           });
 
-          res.status(200).json({ data: 'guest' });
+          res.status(200).json({ data: updatedGuest });
         } catch (e) {
           console.error(e);
           res.sendStatus(500);

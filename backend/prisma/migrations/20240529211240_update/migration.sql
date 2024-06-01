@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Guest" ADD COLUMN     "plusOnes" INTEGER NOT NULL DEFAULT 0;

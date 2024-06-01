@@ -59,28 +59,28 @@ class CalenderController extends AbstractController {
         ];
     }
 
-    addEvent() {
-        return [
-            validateRequestBody(addEventSchema),
-             async (req: Request, res: Response, next: NextFunction) => {
-                try {
-                    const { summary, description, start, end } = req.body as {
-                        summary: string,
-                        description: string,
-                        start: string,
-                        end: string,
-                    };
+  addEvent() {
+    return [
+      validateRequestBody(addEventSchema),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { summary, description, start, end } = req.body as {
+            summary: string;
+            description: string;
+            start: string;
+            end: string;
+          };
 
-                    await googleCalender.addEvent(summary, description, start, end);
+          await googleCalender.addEvent(summary, description, start, end);
 
-                    res.send({ msg: 'Event added successfully' });
-                } catch (e) {
-                    console.error(e);
-                    next(new InternalServerError());
-                }
-            }
-        ];
-    }
+          res.send({ msg: 'Event added successfully' });
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
 }
 
 export default CalenderController;

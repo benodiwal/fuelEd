@@ -23,7 +23,7 @@ export const createPollSchema = z.object({
 });
 
 export const updatePollOptionSchema = z.object({
-  count: z.number(),
+  pollOptionId: z.string(),
 });
 
 export const addEventSchema = z.object({
@@ -31,4 +31,12 @@ export const addEventSchema = z.object({
   description: z.string(),
   start: z.string(),
   end: z.string(),
+});
+
+export const createVenueSchema = z.object({
+  name: z.string(),
+  address: z.string(),
+  zipCode: z.string(),
+  city: z.string(),
+  state: z.string(),
 });

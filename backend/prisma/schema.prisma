@@ -21,7 +21,7 @@ model User{
   vendors Vendor[]
   guests Guest[]
   hosts Host[]
-
+  eventPollSelection EventPollOptionSelection[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -46,8 +46,8 @@ model Guest {
   name  String
 
 
-  nickName String?
-  avatar String @default("")
+  nickName String @default("")
+  avatar Int @default(1)
   profileCompleted Boolean @default(false)
   plusOnes Int @default(0)
 
@@ -110,7 +110,18 @@ model EventPollOptions {
   text String
   count Int @default(0)
   eventPollId String
+  
+  eventPollOptionSelection EventPollOptionSelection[]
   eventPoll EventPoll @relation(fields: [eventPollId], references: [id])
+}
+
+model EventPollOptionSelection {
+  id String @id @default(cuid())
+  userId String
+  eventPollOptionId String
+
+  user User @relation(fields: [userId], references: [id])
+  eventPollOption EventPollOptions @relation(fields: [eventPollOptionId], references: [id])
 }
 
 model Vendor{
@@ -141,7 +152,7 @@ model EventVendor {
 model Contract {
   id    String  @id @default(cuid())
   vendorId String @unique
-  contractData String?
+  contractData Json?
   status ContractStatus @default(SIGNED_BY_HOST)
   vendor Vendor @relation(fields: [vendorId], references: [id])
 }

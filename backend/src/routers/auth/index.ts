@@ -1,6 +1,7 @@
 import CalenderRouter from 'routers/calender';
 import AbstractRouter from '..';
 import AuthController from 'controllers/auth.controller';
+import { forwardEventId } from 'middlewares/forwardEventId.middleware';
 
 export default class AuthRouter extends AbstractRouter {
   registerMiddlewares() {
@@ -13,6 +14,6 @@ export default class AuthRouter extends AbstractRouter {
 
     console.log('Registering CalenderRouter under /calender');
     const calenderRouter = new CalenderRouter(this.ctx, this.engine, '');
-    this.extendRouter('/calender/', calenderRouter, () => {});
+    this.extendRouter('/calender/', calenderRouter, forwardEventId());
   }
 }

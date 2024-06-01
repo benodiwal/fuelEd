@@ -9,7 +9,7 @@ class CalenderRouter extends AbstractRouter {
 
   registerRoutes(): void {
     const calenderController = new CalenderController(this.ctx);
-    this.registerGET('/url', calenderController.generateAuthUrl());
+    this.registerPOST('/url', calenderController.generateAuthUrl());
     this.registerGET('/callback', calenderController.getToken());
     this.registerPOST('/addEvent', calenderController.addEvent());
   }

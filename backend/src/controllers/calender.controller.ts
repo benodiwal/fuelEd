@@ -17,7 +17,7 @@ class CalenderController extends AbstractController {
         super(ctx);
         this.#redisService = new Redis();
         this.#redisService.createConnection();
-        this.#CALENDER = "calender";
+        this.#CALENDER = "calender-";
     }
 
     generateAuthUrl() {
@@ -28,10 +28,10 @@ class CalenderController extends AbstractController {
                     const { eventId } = req.body as { eventId: string };
                     const userId = req.session.currentUserId as string;
 
-                    await this.#redisService.redis?.set(`${this.#CALENDER}-${userId}`, eventId);
+                    await this.#redisService.redis?.set(`${this.#CALENDER}${userId}`, eventId);
 
                     const authUrl = googleCalender.generateAuthUrl();
-                    res.redirect(authUrl);                    
+                    res.status(200).json({ url: authUrl });                 
                 } catch (e) {
                     console.error(e);
                     next(new InternalServerError());
@@ -49,8 +49,8 @@ class CalenderController extends AbstractController {
                     const userId = req.session.currentUserId as string;
                     await googleCalender.getToken(code);
 
-                    const eventId = await this.#redisService.redis?.get(`${this.#CALENDER}-${userId}`);
-                    res.redirect(`http://localhost:3000/events/${eventId}/overview`);
+                    const eventId = await this.#redisService.redis?.get(`${this.#CALENDER}${userId}`);
+                    res.redirect(`http://localhost:3000/event/${eventId}/rsvp`);
                 } catch (e) {
                     console.error(e);
                     next(new InternalServerError());

@@ -37,16 +37,17 @@ class GoogleCalender {
 
   async addEvent(summary: string, description: string, start: string, end: string) {
     const timeZone = getEnvVar('GOOGLE_CALENDER_TIMEZONE') as string;
+    console.log(start, end);
 
     const event: CalenderEvent = {
       summary: summary,
       description: description,
       start: {
-        dateTime: start,
+        dateTime: new Date().toISOString(),
         timeZone,
       },
       end: {
-        dateTime: end,
+        dateTime: new Date().toISOString(),
         timeZone,
       },
     };
@@ -56,6 +57,12 @@ class GoogleCalender {
         auth: this.#oauth2Client,
         calendarId: 'primary',
         requestBody: event,
+      }, (err: any, result: any) => {
+        if (err) {
+            console.error(err);
+        } else {
+            console.log(result);
+        }
       });
       console.log('Event Created: ', response);
     } catch (e) {

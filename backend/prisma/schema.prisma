@@ -17,6 +17,7 @@ model User{
   id    String  @id @default(cuid())
   name  String
   email String  @unique
+  hasGivenCalendarAccess Boolean @default(false)
 
   vendors Vendor[]
   guests Guest[]
@@ -206,7 +207,7 @@ model Event {
   startDate  String
   endDate    String
   startTime  String
-
+  isAddedToCalendar Boolean @default(false)
 
   guestPosts GuestPost[]
   rsvps RSVP[]

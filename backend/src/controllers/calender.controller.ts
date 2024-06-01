@@ -50,6 +50,16 @@ class CalenderController extends AbstractController {
                     await googleCalender.getToken(code);
 
                     const eventId = await this.#redisService.redis?.get(`${this.#CALENDER}${userId}`);
+
+                    await this.ctx.users.update({
+                      where: {
+                        id: userId,
+                      },
+                      data: {
+                        hasGivenCalendarAccess: true,
+                      }
+                    });
+
                     res.redirect(`http://localhost:3000/event/${eventId}/rsvp`);
                 } catch (e) {
                     console.error(e);
@@ -70,10 +80,21 @@ class CalenderController extends AbstractController {
             start: string;
             end: string;
           };
+          const userId = req.session.currentUserId as string;
 
           await googleCalender.addEvent(summary, description, start, end);
+          const eventId = await this.#redisService.redis?.get(`${this.#CALENDER}${userId}`) as string;
 
-          res.send({ msg: 'Event added successfully' });
+          await this.ctx.events.update({
+            where: {
+              id: eventId,
+            },
+            data: {
+              isAddedToCalendar: true,
+            }
+          });
+
+          res.status(200).send({ msg: 'Event added successfully' });
         } catch (e) {
           console.error(e);
           next(new InternalServerError());

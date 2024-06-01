@@ -80,21 +80,23 @@ export default class ContractsController extends AbstractController {
       async (req: Request, res: Response, next: NextFunction) => {
         try {
           const userId = req.session.currentUserId as string;
+          const eventId = req.eventId as string;
 
-          const user = await this.ctx.users.findUnqiue({
+          const vendor = await this.ctx.vendors.findFirst({
             where: {
-              id: userId,
-            },
-            include: {
-              vendors: {
-                include: {
-                  contract: true,
+              userId,
+              events: {
+                some: {
+                  eventId: eventId,
                 },
               },
             },
+            include: {
+              contract: true,
+            },
           });
 
-          return res.status(200).send({ data: user });
+          return res.status(200).send({ data: vendor });
         } catch (e) {
           console.error(e);
           next(new InternalServerError());

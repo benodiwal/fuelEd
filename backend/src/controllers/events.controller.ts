@@ -966,6 +966,33 @@ class EventsController extends AbstractController {
     ];
   }
 
+  updateHostMessage() {
+    return [
+      validateRequestParams(z.object({ id: z.string() })),
+      validateRequestBody(z.object({ message: z.string() })),
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const { id } = req.params as { id: string };
+          const { message } = req.body as { message: string };
+
+          const eventHostMessage = await this.ctx.eventHostMessage.update({
+            where: {
+              eventId: id,
+            },
+            data: {
+              message,
+            },
+          });
+
+          res.status(200).json({ data: eventHostMessage });
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
+
   createVenue() {
     return [
       validateRequestParams(z.object({ id: z.string() })),

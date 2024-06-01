@@ -5,7 +5,7 @@ CREATE TYPE "ChannelType" AS ENUM ('PUBLIC', 'PRIVATE', 'DIRECT');
 CREATE TYPE "VendorType" AS ENUM ('CATERER', 'PHOTOGRAPHER', 'DJ', 'DECORATOR', 'PLANNER', 'FLORIST', 'BAKER', 'OTHER', 'VENUE');
 
 -- CreateEnum
-CREATE TYPE "InviteStatus" AS ENUM ('PENDING', 'CONFIRMED', 'CANCELLED');
+CREATE TYPE "InviteStatus" AS ENUM ('PENDING_VENDOR', 'CONFIRMED_VENDOR', 'PENDING_GUEST', 'CONFIRMED_GUEST');
 
 -- CreateEnum
 CREATE TYPE "RSVPStatus" AS ENUM ('PENDING', 'CONFIRMED', 'CANCELLED');
@@ -102,6 +102,15 @@ CREATE TABLE "EventPollOptions" (
 );
 
 -- CreateTable
+CREATE TABLE "EventPollOptionSelection" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "eventPollOptionId" TEXT NOT NULL,
+
+    CONSTRAINT "EventPollOptionSelection_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Vendor" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -127,7 +136,7 @@ CREATE TABLE "EventVendor" (
 CREATE TABLE "Contract" (
     "id" TEXT NOT NULL,
     "vendorId" TEXT NOT NULL,
-    "contractData" TEXT,
+    "contractData" JSONB,
     "status" "ContractStatus" NOT NULL DEFAULT 'SIGNED_BY_HOST',
 
     CONSTRAINT "Contract_pkey" PRIMARY KEY ("id")
@@ -225,7 +234,7 @@ CREATE TABLE "Venue" (
 -- CreateTable
 CREATE TABLE "Invite" (
     "id" TEXT NOT NULL,
-    "status" "InviteStatus" NOT NULL DEFAULT 'PENDING',
+    "status" "InviteStatus" NOT NULL DEFAULT 'PENDING_GUEST',
     "email" TEXT NOT NULL,
     "eventId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -311,6 +320,12 @@ ALTER TABLE "EventPoll" ADD CONSTRAINT "EventPoll_eventId_fkey" FOREIGN KEY ("ev
 
 -- AddForeignKey
 ALTER TABLE "EventPollOptions" ADD CONSTRAINT "EventPollOptions_eventPollId_fkey" FOREIGN KEY ("eventPollId") REFERENCES "EventPoll"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "EventPollOptionSelection" ADD CONSTRAINT "EventPollOptionSelection_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "EventPollOptionSelection" ADD CONSTRAINT "EventPollOptionSelection_eventPollOptionId_fkey" FOREIGN KEY ("eventPollOptionId") REFERENCES "EventPollOptions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Vendor" ADD CONSTRAINT "Vendor_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

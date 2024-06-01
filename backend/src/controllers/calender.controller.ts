@@ -5,18 +5,15 @@ import googleCalender from "libs/calender.lib";
 import { validateRequestBody, validateRequestQuery } from "validators/validateRequest";
 import { z } from "zod";
 import { addEventSchema } from "zod/schema";
-import Redis from "libs/redis.lib";
 import { IContext } from "interfaces";
+import redisService from "libs/redis.lib";
 
 class CalenderController extends AbstractController {
 
-    #redisService: Redis;
     #CALENDER: string;
 
     constructor(ctx: IContext) {
         super(ctx);
-        this.#redisService = new Redis();
-        this.#redisService.createConnection();
         this.#CALENDER = "calender-";
     }
 
@@ -28,7 +25,7 @@ class CalenderController extends AbstractController {
                     const { eventId } = req.body as { eventId: string };
                     const userId = req.session.currentUserId as string;
 
-                    await this.#redisService.redis?.set(`${this.#CALENDER}${userId}`, eventId);
+                    await redisService.redis?.set(`${this.#CALENDER}${userId}`, eventId);
 
                     const authUrl = googleCalender.generateAuthUrl();
                     res.status(200).json({ url: authUrl });                 
@@ -49,7 +46,7 @@ class CalenderController extends AbstractController {
                     const userId = req.session.currentUserId as string;
                     await googleCalender.getToken(code);
 
-                    const eventId = await this.#redisService.redis?.get(`${this.#CALENDER}${userId}`);
+                    const eventId = await redisService.redis?.get(`${this.#CALENDER}${userId}`);
 
                     await this.ctx.users.update({
                       where: {
@@ -83,7 +80,7 @@ class CalenderController extends AbstractController {
           const userId = req.session.currentUserId as string;
 
           await googleCalender.addEvent(summary, description, start, end);
-          const eventId = await this.#redisService.redis?.get(`${this.#CALENDER}${userId}`) as string;
+          const eventId = await redisService.redis?.get(`${this.#CALENDER}${userId}`) as string;
 
           await this.ctx.events.update({
             where: {

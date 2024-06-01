@@ -21,6 +21,7 @@ CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
+    "hasGivenCalendarAccess" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -186,6 +187,7 @@ CREATE TABLE "Event" (
     "startDate" TEXT NOT NULL,
     "endDate" TEXT NOT NULL,
     "startTime" TEXT NOT NULL,
+    "isAddedToCalendar" BOOLEAN NOT NULL DEFAULT false,
     "hostId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,

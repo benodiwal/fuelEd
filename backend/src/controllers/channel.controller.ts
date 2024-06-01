@@ -274,6 +274,13 @@ class ChannelController extends AbstractController {
               senderId: sender.id,
               channelId,
             },
+            include: {
+              sender: {
+                include: {
+                  guest: true,
+                }
+              }
+            }
           });
 
           console.log(channelMessage);

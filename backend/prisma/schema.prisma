@@ -46,7 +46,6 @@ model Guest {
   id    String  @id @default(cuid())
   name  String
 
-
   nickName String @default("")
   avatar Int @default(1)
   profileCompleted Boolean @default(false)

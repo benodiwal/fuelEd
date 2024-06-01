@@ -21,4 +21,8 @@ class Redis {
   }
 }
 
-export default Redis;
+
+const redisService = new Redis();
+redisService.createConnection();
+
+export default redisService;

@@ -74,4 +74,32 @@ export default class ContractsController extends AbstractController {
       },
     ];
   }
+
+  getAllContractsByUserId() {
+    return [
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const userId = req.session.currentUserId as string;
+
+          const user = await this.ctx.users.findUnqiue({
+            where: {
+              id: userId,
+            },
+            include: {
+              vendors: {
+                include: {
+                  contract: true,
+                },
+              },
+            },
+          });
+
+          return res.status(200).send({ data: user });
+        } catch (e) {
+          console.error(e);
+          next(new InternalServerError());
+        }
+      },
+    ];
+  }
 }

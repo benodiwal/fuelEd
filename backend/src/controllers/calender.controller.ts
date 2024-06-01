@@ -77,21 +77,10 @@ class CalenderController extends AbstractController {
             start: string;
             end: string;
           };
-          const userId = req.session.currentUserId as string;
 
           await googleCalender.addEvent(summary, description, start, end);
-          const eventId = await redisService.redis?.get(`${this.#CALENDER}${userId}`) as string;
 
-          await this.ctx.events.update({
-            where: {
-              id: eventId,
-            },
-            data: {
-              isAddedToCalendar: true,
-            }
-          });
-
-          res.status(200).send({ msg: 'Event added successfully' });
+           res.status(200).send({ msg: 'Event added successfully' });
         } catch (e) {
           console.error(e);
           next(new InternalServerError());

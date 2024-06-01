@@ -206,7 +206,6 @@ model Event {
   startDate  String
   endDate    String
   startTime  String
-  isAddedToCalendar Boolean @default(false)
 
   guestPosts GuestPost[]
   rsvps RSVP[]

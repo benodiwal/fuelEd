@@ -679,10 +679,22 @@ class EventsController extends AbstractController {
           }
 
           const selection = this.createPollOptionSelection(userId, updatedOption.id);
+
           selection();
 
+          const poll = await this.ctx.eventPolls.findUnqiue({
+            where: { id: pollId },
+            include: {
+              options: {
+                include: {
+                  eventPollOptionSelection: true,
+                },
+              },
+            },
+          });
+
           res.status(200).send({
-            data: 'Successfully updated',
+            data: poll,
           });
         } catch (e) {
           console.error(e);

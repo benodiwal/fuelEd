@@ -23,7 +23,7 @@ export default class Server {
   #registerHandlers() {
     this.engine.use(
       cors({
-        origin: 'http://localhost:3000',
+        origin: '*',
         credentials: true,
       }),
     );

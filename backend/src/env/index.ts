@@ -19,6 +19,7 @@ const envSchema = z.object({
   GOOGLE_CALENDER_OAUTH_REDIRECT_URI: z.string(),
   GOOGLE_CALENDER_OAUTH_SCOPE: z.string(),
   GOOGLE_CALENDER_TIMEZONE: z.string(),
+  CLIENT_URL: z.string(),
 });
 
 export const parseEnv = (): void => {

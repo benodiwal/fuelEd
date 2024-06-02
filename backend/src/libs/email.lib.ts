@@ -36,7 +36,7 @@ export class Email {
                  <p>Hi ${name}</p>
                  <p>Click the button below:</p>
       <div style="text-align: center;">
-        <a href="http://localhost:3000/invite/${inviteId}?role=${data.role}&event=${eventId}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; border-radius: 5px;">Click me</a>
+        <a href="${getEnvVar('CLIENT_URL')}/invite/${inviteId}?role=${data.role}&event=${eventId}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; display: inline-block; border-radius: 5px;">Click me</a>
       </div>
             `,
     });

@@ -58,7 +58,8 @@ class GoogleCalender {
           calendarId: 'primary',
           requestBody: event,
         },
-        (err: any, result: any) => { //Todo
+        (err: any, result: any) => {
+          //Todo
           if (err) {
             console.error(err);
           } else {

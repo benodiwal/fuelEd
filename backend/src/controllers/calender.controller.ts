@@ -87,7 +87,6 @@ class CalenderController extends AbstractController {
       },
     ];
   }
-  
 }
 
 export default CalenderController;

@@ -36,8 +36,8 @@ export default class Server {
       cookieSession({
         name: 'session',
         keys: [getEnvVar('JWT_SIGNING_KEY')],
-        secure: false,
-        httpOnly: false,
+        secure: true,
+        httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
       }),
     );

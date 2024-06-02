@@ -39,7 +39,7 @@ export default class Server {
         name: 'session',
         keys: [getEnvVar('JWT_SIGNING_KEY')],
         secure: true,
-        httpOnly: false,
+        httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
       }),
     );

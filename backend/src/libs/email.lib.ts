@@ -12,7 +12,7 @@ export class Email {
       host: getEnvVar('SMTP_HOST'),
       port: parseInt(getEnvVar('SMTP_PORT'), 10),
       secure: true,
-      // requireTLS: true,
+      requireTLS: true,
       auth: {
         user: getEnvVar('SMTP_HOST_USER'),
         pass: getEnvVar('SMTP_HOST_PASSWORD'),

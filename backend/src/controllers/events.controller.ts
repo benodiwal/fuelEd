@@ -165,6 +165,7 @@ class EventsController extends AbstractController {
                   },
                 },
               },
+              venue: true,
               guestPosts: true,
               invites: true,
               rsvps: true,
@@ -923,6 +924,11 @@ class EventsController extends AbstractController {
                   id: eventId,
                 },
               },
+            },
+
+            include: {
+              guest: true,
+              event: true,
             },
           });
 

@@ -1,6 +1,6 @@
 import CalenderController from 'controllers/calender.controller';
 import { isAuthenticated } from 'middlewares/isAuthenticated.middleware';
-import AbstractRouter from 'routers';
+import AbstractRouter from '..';
 
 class CalenderRouter extends AbstractRouter {
   registerMiddlewares() {

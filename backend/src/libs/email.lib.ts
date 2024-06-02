@@ -11,8 +11,8 @@ export class Email {
     this.#transporter = nodemailer.createTransport({
       host: getEnvVar('SMTP_HOST'),
       port: parseInt(getEnvVar('SMTP_PORT'), 10),
-      secure: false,
-      requireTLS: true,
+      secure: true,
+      // requireTLS: true,
       auth: {
         user: getEnvVar('SMTP_HOST_USER'),
         pass: getEnvVar('SMTP_HOST_PASSWORD'),

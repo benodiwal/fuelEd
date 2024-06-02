@@ -146,7 +146,6 @@ class EventsController extends AbstractController {
             },
             include: {
               host: true,
-
               guests: {
                 include: {
                   guest: {

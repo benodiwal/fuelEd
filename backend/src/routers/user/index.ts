@@ -1,4 +1,4 @@
-import AbstractRouter from 'routers';
+import AbstractRouter from '..';
 import UserController from 'controllers/user.controller';
 import { isAuthenticated } from 'middlewares/isAuthenticated.middleware';
 

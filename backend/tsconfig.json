@@ -17,7 +17,17 @@
     "paths": {
       "env/*": ["env/*"],
       "apps/*": ["apps/*"],
-      "middlewares/*": ["middlewares/*"]
+      "middlewares/*": ["middlewares/*"],
+      "routers/*": ["routers/*"],
+      "errors/*": ["errors/*"],
+      "libs/*": ["libs/*"],
+      "models/*": ["models/*"],
+      "interfaces/*": ["interfaces/*"],
+      "controllers/*": ["controllers/*"],
+      "zod/*": ["zod/*"],
+      "types/*": ["types/*"],
+      "validators/*": ["validators/*"],
+      "socket/*": ["socket/*"]
     }
   },
   "ts-node": { "files": true, "require": ["tsconfig-paths/register"] },

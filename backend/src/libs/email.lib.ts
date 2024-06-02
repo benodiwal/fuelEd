@@ -17,7 +17,7 @@ export class Email {
         user: getEnvVar('SMTP_HOST_USER'),
         pass: getEnvVar('SMTP_HOST_PASSWORD'),
       },
-    });
+    }); 
   }
 
   //   const filePath = path.join(__dirname, '..', '..', 'templates', fileName);

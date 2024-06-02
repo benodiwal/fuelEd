@@ -21,6 +21,7 @@ export default class Server {
   }
 
   #registerHandlers() {
+    this.engine.set('trust-proxy', 1);
     this.engine.use(
       cors({
         origin: 'https://get-together-five.vercel.app',

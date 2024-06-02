@@ -21,7 +21,7 @@ export default class Server {
   }
 
   #registerHandlers() {
-    this.engine.set('trust proxy', 1);
+    this.engine.set('trust proxy', true);
     this.engine.use(
       cors({
         origin: 'https://get-together-five.vercel.app',
@@ -39,8 +39,8 @@ export default class Server {
       cookieSession({
         name: 'session',
         keys: [getEnvVar('JWT_SIGNING_KEY')],
-        secure: true,
-        httpOnly: true,
+        secure: false,
+        httpOnly: false,
         maxAge: 24 * 60 * 60 * 1000,
       }),
     );

@@ -278,9 +278,9 @@ class ChannelController extends AbstractController {
               sender: {
                 include: {
                   guest: true,
-                }
-              }
-            }
+                },
+              },
+            },
           });
 
           console.log(channelMessage);
@@ -331,9 +331,9 @@ class ChannelController extends AbstractController {
               sender: {
                 include: {
                   guest: true,
-                }
-              }
-            }
+                },
+              },
+            },
           });
           if (!channelMessages) {
             return res.status(404).json({ error: 'Message not found' });

@@ -20,6 +20,7 @@ export const validateRequestQuery = (schema: AnyZodObject) => {
 export const validateRequestBody = (schema: AnyZodObject) => {
   return async (req: Request, _: Response, next: NextFunction) => {
     try {
+      console.log(req.body);
       req.body = schema.parse(req.body);
       next();
     } catch (e) {

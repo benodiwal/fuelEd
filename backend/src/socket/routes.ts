@@ -46,7 +46,7 @@ class SocketRoutes {
       },
       {
         name: 'channelSendMessage',
-        controller: async (socket: Socket, { msg }: { msg: any }) => {
+        controller: async (socket: Socket, { msg }: { msg: any }) => { // Todo
           console.log('Channel Send Message Hit');
           console.log(msg);
 

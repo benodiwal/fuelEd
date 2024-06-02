@@ -43,28 +43,32 @@ class GoogleCalender {
       summary: summary,
       description: description,
       start: {
-        dateTime: new Date().toISOString(),
+        dateTime: new Date(start).toISOString(),
         timeZone,
       },
       end: {
-        dateTime: new Date().toISOString(),
+        dateTime: new Date(end).toISOString(),
         timeZone,
       },
     };
 
     try {
-      const response = this.#calender.events.insert({
-        auth: this.#oauth2Client,
-        calendarId: 'primary',
-        requestBody: event,
-      }, (err: any, result: any) => {
-        if (err) {
+      const response = this.#calender.events.insert(
+        {
+          auth: this.#oauth2Client,
+          calendarId: 'primary',
+          requestBody: event,
+        },
+        (err: any, result: any) => { //Todo
+          if (err) {
             console.error(err);
-        } else {
+          } else {
             console.log(result);
-        }
-      });
+          }
+        },
+      );
       console.log('Event Created: ', response);
+      return response;
     } catch (e) {
       console.error('Error adding event: ', e);
     }

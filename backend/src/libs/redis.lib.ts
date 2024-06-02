@@ -21,7 +21,6 @@ class Redis {
   }
 }
 
-
 const redisService = new Redis();
 redisService.createConnection();
 

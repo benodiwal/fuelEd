@@ -20,15 +20,15 @@ export class Email {
     });
   }
 
-  // private readFile(fileName: string): string {
   //   const filePath = path.join(__dirname, '..', '..', 'templates', fileName);
+  //   private readFile(fileName: string): string {
   //   const data = fs.readFileSync(filePath, 'utf8');
   //   return data;
   // }
 
   async sendEmail({ name, email, inviteId, data, eventId }: ISendEmail): Promise<void> {
     const info = await this.#transporter.sendMail({
-      from: 's474996633@gmail.com',
+      from: getEnvVar('SMTP_HOST_USER'),
       to: email,
       subject: 'Invitation', // Todo: Change it later
       text: `You have been invited to be a ${data.role}`,

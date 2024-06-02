@@ -37,7 +37,6 @@ class GoogleCalender {
 
   async addEvent(summary: string, description: string, start: string, end: string) {
     const timeZone = getEnvVar('GOOGLE_CALENDER_TIMEZONE') as string;
-    console.log(start, end);
 
     const event: CalenderEvent = {
       summary: summary,

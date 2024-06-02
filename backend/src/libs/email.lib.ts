@@ -1,8 +1,10 @@
 import getEnvVar from 'env/index';
 import { ISendEmail } from 'interfaces/libs';
 import nodemailer, { Transporter } from 'nodemailer';
+import fs from 'fs';
+import path from 'path';
 
-class Email {
+export class Email {
   #transporter: Transporter;
 
   constructor() {
@@ -16,6 +18,12 @@ class Email {
         pass: getEnvVar('SMTP_HOST_PASSWORD'),
       },
     });
+  }
+
+  private readFile(fileName: string): string {
+    const filePath = path.join(__dirname, '..', '..', 'templates', fileName);
+    const data = fs.readFileSync(filePath, 'utf8');
+    return data;
   }
 
   async sendEmail({ name, email, inviteId, data, eventId }: ISendEmail): Promise<void> {
